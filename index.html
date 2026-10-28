@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1f3a56">
+<title>가쿠로</title>
+<style>
+:root{
+  --bg:#eef3f7; --ink:#1d2b3a; --panel:#ffffff; --accent:#2f7fd1; --accent-soft:#e6f0fb;
+  --black:#2b3a4a; --white:#fffdf5; --cluebg:#d6e0ea; --sel:#ffe27a; --run:#fff3c4; --same:#cfe6ff;
+  --bad:#ffb3b3; --good:#2e9e5b; --muted:#6b7f93;
+  --cols:7; --rows:7; --csmax:76px; --pb:50px;
+  --vh:100vh; --chrome:235px; /* 헤더+상태줄+도구줄 높이 */
+  --cs:min(calc((100vw - 20px) / var(--cols)), calc((var(--vh) - var(--chrome)) / var(--rows)), var(--csmax));
+}
+@supports (height:100dvh){:root{--vh:100dvh}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{font-family:"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:16px;touch-action:manipulation;overscroll-behavior:none;display:flex;flex-direction:column;min-height:var(--vh)}
+body.padopen{padding-bottom:200px}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:8px 12px;background:#1f3a56;color:#fff;padding-top:max(8px,env(safe-area-inset-top))}
+header h1{margin:0;font-size:1.25em;letter-spacing:.5px;margin-right:4px}
+header h1 small{font-size:.6em;font-weight:400;opacity:.75;margin-left:6px}
+.spacer{flex:1}
+button{font-family:inherit;font-size:.95em;border:1px solid #b9c8d8;background:#fff;color:var(--ink);border-radius:10px;padding:8px 12px;cursor:pointer;min-height:44px;user-select:none;-webkit-user-select:none}
+button:hover{background:#f2f7fc}
+button:active{transform:translateY(1px)}
+button:disabled{opacity:.45;cursor:default}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary:hover{background:#2a73bf}
+header button{border-color:transparent;min-height:40px;padding:6px 11px}
+.seg{display:inline-flex;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,.4)}
+.seg button{border:0;border-radius:0;background:transparent;color:#fff;min-height:40px;padding:6px 12px}
+.seg button.on{background:#fff;color:#1f3a56;font-weight:700}
+.seg button:hover{background:rgba(255,255,255,.18)}
+.seg button.on:hover{background:#fff}
+.seg button .long{display:inline}.seg button .short{display:none}
+#pick button{min-width:40px;padding:6px 8px;position:relative}
+#pick button.done::after{content:"✔";position:absolute;right:2px;top:1px;font-size:.6em;color:#2e9e5b}
+#pick button.on.done::after{color:#1e8a4a}
+header .ico{font-size:1.1em}
+main{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;padding:8px 10px 12px;padding-bottom:max(12px,env(safe-area-inset-bottom))}
+.status{display:flex;align-items:center;gap:12px;width:100%;max-width:calc(var(--cs)*var(--cols) + 40px);min-width:280px;justify-content:space-between;font-weight:700}
+#timer{font-variant-numeric:tabular-nums;font-size:1.25em}
+#pname{color:var(--muted);font-weight:500;font-size:.9em}
+.boardbox{position:relative}
+#board{display:grid;grid-template-columns:repeat(var(--cols),var(--cs));grid-auto-rows:var(--cs);gap:0;background:var(--bg);width:max-content;user-select:none;-webkit-user-select:none}
+.cell{position:relative;display:flex;align-items:center;justify-content:center;background:var(--white);font-size:calc(var(--cs)*.56);font-weight:700;color:#164a80;cursor:pointer;overflow:hidden;border:1px solid var(--black);margin:-0.5px}
+.cell.black{background:var(--bg);cursor:default;border:0;margin:0}
+.cell.clue{border:1px solid var(--black);margin:-0.5px;background:linear-gradient(to top right,transparent calc(50% - 1.2px),var(--black) calc(50% - 1.2px),var(--black) calc(50% + 1.2px),transparent calc(50% + 1.2px)),var(--cluebg)}
+.cell.bt{border-top-width:3px}.cell.bb{border-bottom-width:3px}.cell.bl{border-left-width:3px}.cell.br{border-right-width:3px}
+.cell .ca,.cell .cd{position:absolute;color:#1f3a56;font-weight:800;font-size:calc(var(--cs)*.3);line-height:1;padding:calc(var(--cs)*.05);border-radius:6px;cursor:pointer}
+.cell .ca{right:calc(var(--cs)*.03);top:calc(var(--cs)*.03)}
+.cell .cd{left:calc(var(--cs)*.03);bottom:calc(var(--cs)*.03)}
+body.helper .cell .ca:hover,body.helper .cell .cd:hover{background:rgba(31,58,86,.15)}
+.cell .ca.active,.cell .cd.active{color:#b25e00;text-decoration:underline}
+.cell .ca.ok,.cell .cd.ok{color:#1e8a4a}
+.cell .ca.open,.cell .cd.open{background:#ffe27a;color:#1f3a56}
+.cell.hintcell{box-shadow:inset 0 0 0 4px var(--good);animation:hp 1s ease-in-out 4}
+.cell.hintcell.sel{box-shadow:inset 0 0 0 4px var(--good),inset 0 0 0 7px #e0a800}
+@keyframes hp{50%{box-shadow:inset 0 0 0 4px var(--good),0 0 14px 4px rgba(46,158,91,.8)}}
+.cell.run{background:var(--run)}
+.cell.same{background:var(--same)}
+.cell.sel{background:var(--sel);box-shadow:inset 0 0 0 3px #e0a800}
+.cell.dup{color:#d12c2c}
+.cell.bad{background:var(--bad);color:#a00}
+.notes{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);width:100%;height:100%;padding:2px;font-size:calc(var(--cs)*.25);font-weight:500;color:#5a7087}
+.notes span{display:flex;align-items:center;justify-content:center}
+#cover{position:absolute;inset:-2px;background:#f4f8fc;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;font-weight:700;border-radius:6px;z-index:5;padding:10px}
+#cover.show{display:flex}
+.spin{width:38px;height:38px;border:4px solid #cfdce9;border-top-color:var(--accent);border-radius:50%;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+#msg{min-height:1.4em;font-weight:700;color:#b25e00;text-align:center;font-size:.95em;padding:0 6px}
+.tools{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:100%}
+.tools button.on{background:#ffefb0;border-color:#e0a800;font-weight:700}
+.tools .cnt{font-weight:400;color:var(--muted);font-size:.85em}
+.keys{font-size:.78em;color:var(--muted);text-align:center;max-width:560px}
+/* 말풍선 */
+#bubble{position:fixed;z-index:45;display:none;background:#fff;border:1px solid #b8c6d4;border-radius:12px;box-shadow:0 8px 24px rgba(20,40,70,.28);padding:10px 30px 10px 12px;max-width:min(340px,calc(100vw - 20px))}
+#bubble.show{display:block}
+#bubble .close{position:absolute;right:4px;top:3px;border:0;background:none;min-height:0;padding:4px 8px;font-size:1.1em;color:var(--muted)}
+.runblock h4{margin:0 0 6px;font-size:.98em}
+.rem{font-weight:400;color:var(--muted);font-size:.85em;margin-left:4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--accent-soft);border:1px solid #bcd5ee;border-radius:999px;padding:4px 11px;font-weight:700;color:#1c5a98;font-variant-numeric:tabular-nums}
+.chip.off{opacity:.35;text-decoration:line-through}
+.tip{font-size:.88em;color:#8a5a00;margin:0 0 6px}
+.none{color:var(--muted)}
+/* 숫자 패드 */
+#pad{position:fixed;z-index:50;display:none;background:#fff;border:1px solid #b8c6d4;border-radius:14px;box-shadow:0 8px 28px rgba(20,40,70,.3);padding:8px;width:calc(var(--pb)*3 + 6*2 + 16px)}
+#pad.show{display:block}
+#pad .digits{display:grid;grid-template-columns:repeat(3,var(--pb));gap:6px}
+#pad .extra{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}
+#pad button{min-height:0;height:var(--pb);padding:0;font-size:1.3em;font-weight:700;border-radius:10px}
+#pad .extra button{height:calc(var(--pb)*.8);font-size:.9em;font-weight:600}
+#pad .digits button.cur{background:var(--accent);border-color:var(--accent);color:#fff}
+#pad .digits button.note{background:#ffefb0;border-color:#e0a800}
+#pad .extra button.on{background:#ffefb0;border-color:#e0a800}
+/* 모달 (도움말 / 완성) */
+.modal{position:fixed;inset:0;background:rgba(15,30,50,.55);display:none;align-items:center;justify-content:center;z-index:90;padding:14px}
+.modal.show{display:flex}
+.modal .card{background:#fff;border-radius:18px;padding:20px 22px;max-width:420px;width:100%;max-height:calc(var(--vh) - 28px);overflow:auto;box-shadow:0 12px 40px rgba(0,0,0,.35);position:relative}
+.modal .x{position:absolute;right:8px;top:6px;border:0;background:none;font-size:1.3em;color:var(--muted);min-height:0;padding:6px 10px}
+#win .card{text-align:center;max-width:380px}
+#win h2{margin:0 0 6px;font-size:2em}
+#win p{margin:6px 0;font-size:1.05em}
+#win .btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+#help h3{margin:0 0 10px;font-size:1.15em}
+#help details{margin-top:6px;border-top:1px solid #e3eaf1;padding-top:6px}
+#help summary{cursor:pointer;font-weight:700;padding:6px 0}
+#help li{font-size:.92em;line-height:1.55}
+.calc{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0 8px}
+.calc input,.calc select{font-family:inherit;font-size:1em;padding:7px 8px;border:1px solid #b9c8d8;border-radius:8px}
+.calc input{width:70px}
+.fixrow{margin:6px 0}.fixrow b{display:block;margin-bottom:3px}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:95}
+/* 수업용 크게 보기 */
+body.big{--csmax:120px;--pb:64px;font-size:19px;--chrome:215px}
+body.big .tools button{min-height:48px;padding:10px 16px}
+body.big #timer{font-size:1.6em}
+body.big .keys{display:none}
+/* 좁은 화면(폰) */
+@media (max-width:640px){
+  :root{--pb:46px;--chrome:225px}
+  header{gap:6px 8px;padding:6px 8px}
+  header h1{font-size:1.1em}
+  header h1 small{display:none}
+  header button{padding:6px 9px;font-size:.9em}
+  .seg button{padding:6px 9px;font-size:.9em}
+  .seg button .long{display:none}.seg button .short{display:inline}
+  #pick button{min-width:34px;padding:6px 6px}
+  .txt{display:none}
+  #pad{left:0;right:0;bottom:0;width:auto;border-radius:16px 16px 0 0;padding:8px 10px max(12px,env(safe-area-inset-bottom))}
+  #pad .digits{grid-template-columns:repeat(5,1fr)}
+  #pad button{height:50px}
+  #pad .extra button{height:44px}
+  .tools{gap:5px}
+  .tools button{padding:8px 10px;font-size:.9em}
+  .keys{display:none}
+}
+/* 낮은 가로 화면(폰 가로, 작은 태블릿 가로) */
+@media (max-height:800px){.keys{display:none}}
+@media (max-height:480px) and (orientation:landscape){
+  :root{--chrome:175px;--pb:42px}
+  header{padding:4px 8px;gap:4px 6px}
+  header h1{font-size:1em}
+  header h1 small{display:none}
+  header button{min-height:34px;padding:4px 8px}
+  .seg button{min-height:34px;padding:4px 8px;font-size:.88em}
+  .seg button .long{display:none}.seg button .short{display:inline}
+  .txt{display:none}
+  main{padding:4px 8px 6px;gap:4px}
+  .status{font-weight:600}
+  .tools button{min-height:38px;padding:6px 10px}
+  #msg{min-height:1.2em;font-size:.85em}
+}
+</style>
+</head>
+<body class="helper">
+<header>
+  <h1>가쿠로<small>숫자 합 퍼즐</small></h1>
+  <div class="seg" id="diff">
+    <button data-d="easy" class="on"><span class="long">쉬움 5×5</span><span class="short">5×5</span></button>
+    <button data-d="normal"><span class="long">보통 7×7</span><span class="short">7×7</span></button>
+    <button data-d="hard"><span class="long">어려움 9×9</span><span class="short">9×9</span></button>
+  </div>
+  <div class="seg" id="pick">
+    <button data-p="0">1</button><button data-p="1">2</button><button data-p="2">3</button><button data-p="3">4</button><button data-p="4">5</button><button data-p="r" title="랜덤 생성">🎲</button>
+  </div>
+  <span class="spacer"></span>
+  <button id="btnHelper" aria-pressed="true" title="합 숫자를 누르면 조합 표시"><span class="ico">🧮</span><span class="txt"> 조합 도우미 ON</span></button>
+  <button id="btnHelp" title="도움말"><span class="ico">❓</span><span class="txt"> 도움말</span></button>
+  <button id="btnBig" aria-pressed="false" title="수업용 크게 보기"><span class="ico">🖥</span><span class="txt"> 크게 보기</span></button>
+</header>
+
+<main>
+  <div class="status">
+    <span id="timer">00:00</span>
+    <span id="pname"></span>
+    <button id="btnPause">⏸<span class="txt"> 일시정지</span></button>
+  </div>
+  <div class="boardbox">
+    <div id="board"></div>
+    <div id="cover"><div class="spin"></div><div id="coverText">퍼즐 만드는 중…</div></div>
+  </div>
+  <div id="msg"></div>
+  <div class="tools">
+    <button id="btnUndo" title="실행취소">↶<span class="txt"> 실행취소</span></button>
+    <button id="btnRedo" title="다시실행">↷<span class="txt"> 다시실행</span></button>
+    <button id="btnNote" title="메모">✏️<span class="txt"> 메모 OFF</span></button>
+    <button id="btnClear" title="지우기">🧽<span class="txt"> 지우기</span></button>
+    <button id="btnCheck" title="틀린 칸 확인">✔<span class="txt"> 틀린 칸 확인</span> <span class="cnt">2/2</span></button>
+    <button id="btnHint" title="힌트">💡<span class="txt"> 힌트</span> <span class="cnt">3/3</span></button>
+    <button id="btnRestart" title="처음부터">🔄<span class="txt"> 처음부터</span></button>
+  </div>
+  <div class="keys">키보드: 1~9 입력 · 0/Backspace 지우기 · 방향키 이동 · N 메모 · H 힌트 · Ctrl+Z 실행취소 · Ctrl+Y 다시실행 · 합 숫자를 누르면 가능한 조합이 나와요</div>
+</main>
+
+<div id="bubble"><button class="close" id="bubbleClose">✕</button><div id="bubbleBody"></div></div>
+
+<div id="pad">
+  <div class="digits" id="padDigits"></div>
+  <div class="extra">
+    <button id="padClear">지우기</button>
+    <button id="padNote">메모</button>
+    <button id="padClose">닫기</button>
+  </div>
+</div>
+
+<div id="help" class="modal">
+  <div class="card">
+    <button class="x" data-close>✕</button>
+    <h3>❓ 도움말</h3>
+    <details open>
+      <summary>게임 방법</summary>
+      <ul>
+        <li>흰 칸에 1~9를 넣어요.</li>
+        <li>회색 칸의 숫자는 합 힌트예요. 오른쪽 위 숫자는 가로(→), 왼쪽 아래 숫자는 세로(↓)의 합이에요.</li>
+        <li>한 묶음(연속된 흰 칸) 안에서는 같은 숫자를 두 번 쓸 수 없어요.</li>
+        <li>묶음을 다 채워 합이 맞으면 힌트 숫자가 초록색으로 바뀌어요.</li>
+        <li>합 숫자를 누르면 그 묶음에 들어갈 수 있는 숫자 조합이 나와요. (🧮 버튼으로 끌 수 있어요)</li>
+        <li>💡 힌트(3회): 지금 상태에서 숫자가 하나로 정해지는 칸을 알려줘요. ✔ 틀린 칸 확인(2회): 잘못 넣은 칸을 빨갛게 보여줘요.</li>
+        <li>1~5번은 고정 문제, 🎲는 매번 새로 만들어지는 문제예요. 모든 퍼즐은 답이 딱 하나로 정해져요.</li>
+      </ul>
+    </details>
+    <details>
+      <summary>합 조합 직접 조회</summary>
+      <div class="calc">
+        합 <input type="number" id="calcSum" min="3" max="45" value="17">
+        칸 <select id="calcLen"></select>
+      </div>
+      <div id="calcOut"></div>
+    </details>
+    <details>
+      <summary>조합이 딱 하나뿐인 합 (외워두면 편해요)</summary>
+      <div id="fixedCombos"></div>
+    </details>
+  </div>
+</div>
+
+<div id="win" class="modal">
+  <div class="card">
+    <h2>🎉 완성!</h2>
+    <p id="winInfo"></p>
+    <div class="btns">
+      <button class="primary" id="winNext">다음 문제</button>
+      <button id="winClose">판 보기</button>
+    </div>
+  </div>
+</div>
+<canvas id="confetti"></canvas>
+
+<script>
+/*GEN_START*/
+const PC=new Uint8Array(512);for(let i=1;i<512;i++)PC[i]=PC[i>>1]+(i&1);
+const COMBO={};
+for(let m=1;m<512;m++){
+  let c=0,s=0;
+  for(let d=1;d<=9;d++)if((m>>(d-1))&1){c++;s+=d;}
+  if(!COMBO[c])COMBO[c]={};
+  if(!COMBO[c][s])COMBO[c][s]=[];
+  COMBO[c][s].push(m);
+}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function cleanLayout(w,n,maxLen,minW){
+  for(let guard=0;guard<60;guard++){
+    let ch=false;
+    for(let dir=0;dir<2;dir++){
+      for(let a=1;a<n;a++){
+        const at=k=>dir===0?w[a][k]:w[k][a];
+        const set=(k,v)=>{if(dir===0)w[a][k]=v;else w[k][a]=v;};
+        let b=1;
+        while(b<n){
+          if(!at(b)){b++;continue;}
+          const s=b;
+          while(b<n&&at(b))b++;
+          const len=b-s;
+          if(len===1){set(s,false);ch=true;}
+          else if(len>maxLen){const k=s+2+Math.floor(Math.random()*(len-4));set(k,false);ch=true;}
+        }
+      }
+    }
+    // 가장 큰 연결 덩어리만 남김
+    const comp=Array.from({length:n},()=>Array(n).fill(-1));
+    let best=-1,bestSize=0,id=0;
+    for(let r=1;r<n;r++)for(let c=1;c<n;c++){
+      if(!w[r][c]||comp[r][c]!==-1)continue;
+      let size=0;const st=[[r,c]];comp[r][c]=id;
+      while(st.length){
+        const [y,x]=st.pop();size++;
+        for(const [dy,dx] of [[1,0],[-1,0],[0,1],[0,-1]]){
+          const yy=y+dy,xx=x+dx;
+          if(yy>=1&&xx>=1&&yy<n&&xx<n&&w[yy][xx]&&comp[yy][xx]===-1){comp[yy][xx]=id;st.push([yy,xx]);}
+        }
+      }
+      if(size>bestSize){bestSize=size;best=id;}
+      id++;
+    }
+    for(let r=1;r<n;r++)for(let c=1;c<n;c++)if(w[r][c]&&comp[r][c]!==best){w[r][c]=false;ch=true;}
+    if(!ch)break;
+  }
+  return checkLayout(w,n,minW)?w:null;
+}
+function checkLayout(w,n,minW){
+  let cnt=0,fr=-1,fc=-1;
+  for(let r=1;r<n;r++)for(let c=1;c<n;c++){
+    if(!w[r][c])continue;
+    cnt++;if(fr<0){fr=r;fc=c;}
+    const hOk=(w[r][c-1])||(c+1<n&&w[r][c+1]);
+    const vOk=(w[r-1][c])||(r+1<n&&w[r+1][c]);
+    if(!hOk||!vOk)return false;
+  }
+  if(cnt<minW)return false;
+  const seen=Array.from({length:n},()=>Array(n).fill(false));
+  const st=[[fr,fc]];seen[fr][fc]=true;let got=0;
+  while(st.length){
+    const [y,x]=st.pop();got++;
+    for(const [dy,dx] of [[1,0],[-1,0],[0,1],[0,-1]]){
+      const yy=y+dy,xx=x+dx;
+      if(yy>=1&&xx>=1&&yy<n&&xx<n&&w[yy][xx]&&!seen[yy][xx]){seen[yy][xx]=true;st.push([yy,xx]);}
+    }
+  }
+  return got===cnt;
+}
+function genLayout(n,maxLen,minW){
+  const w=Array.from({length:n},()=>Array(n).fill(false));
+  const p=0.14+Math.random()*0.16;
+  for(let r=1;r<n;r++)for(let c=1;c<n;c++)w[r][c]=Math.random()>p;
+  return cleanLayout(w,n,maxLen,minW);
+}
+function buildPuzzle(w,n){
+  const N=n*n,runs=[],hRun=new Int16Array(N).fill(-1),vRun=new Int16Array(N).fill(-1),whites=[];
+  for(let r=1;r<n;r++)for(let c=1;c<n;c++)if(w[r][c])whites.push(r*n+c);
+  for(let r=1;r<n;r++){
+    let c=1;
+    while(c<n){
+      if(!w[r][c]){c++;continue;}
+      const s=c,cells=[];
+      while(c<n&&w[r][c]){cells.push(r*n+c);c++;}
+      if(cells.length>=2){const id=runs.length;runs.push({dir:'h',cells,clue:r*n+(s-1),sum:0});cells.forEach(x=>hRun[x]=id);}
+    }
+  }
+  for(let c=1;c<n;c++){
+    let r=1;
+    while(r<n){
+      if(!w[r][c]){r++;continue;}
+      const s=r,cells=[];
+      while(r<n&&w[r][c]){cells.push(r*n+c);r++;}
+      if(cells.length>=2){const id=runs.length;runs.push({dir:'v',cells,clue:(s-1)*n+c,sum:0});cells.forEach(x=>vRun[x]=id);}
+    }
+  }
+  return {n,N,w,runs,hRun,vRun,whites,sol:new Array(N).fill(0)};
+}
+function fillPuzzle(P){
+  const used=new Int32Array(P.runs.length),sol=P.sol;
+  let nodes=0;
+  const order=P.whites;
+  function rec(i){
+    if(i===order.length)return true;
+    if(++nodes>6000)return false;
+    const cell=order[i],hr=P.hRun[cell],vr=P.vRun[cell];
+    const forb=used[hr]|used[vr];
+    const ds=shuffle([1,2,3,4,5,6,7,8,9]);
+    for(const d of ds){
+      const bit=1<<(d-1);
+      if(forb&bit)continue;
+      used[hr]|=bit;used[vr]|=bit;sol[cell]=d;
+      if(rec(i+1))return true;
+      used[hr]&=~bit;used[vr]&=~bit;sol[cell]=0;
+    }
+    return false;
+  }
+  return rec(0);
+}
+function setSums(P){for(const run of P.runs){let s=0;for(const i of run.cells)s+=P.sol[i];run.sum=s;}}
+
+function solveCount(P,limit,nodeLimit){
+  const N=P.N,whites=P.whites,sols=[];
+  let nodes=0,aborted=false;
+  function propagate(c){
+    let changed=true;
+    while(changed){
+      changed=false;
+      for(const run of P.runs){
+        const cells=run.cells,L=cells.length;
+        let singles=0;
+        for(let k=0;k<L;k++){
+          const m=c[cells[k]];
+          if(m===0)return false;
+          if((m&(m-1))===0){if(singles&m)return false;singles|=m;}
+        }
+        const combos=COMBO[L][run.sum];
+        if(!combos)return false;
+        let allowed=0;
+        for(const cm of combos){
+          if((cm&singles)!==singles)continue;
+          let ok=true;
+          for(let k=0;k<L;k++){if(!(c[cells[k]]&cm)){ok=false;break;}}
+          if(ok)allowed|=cm;
+        }
+        if(!allowed)return false;
+        for(let k=0;k<L;k++){
+          const was=c[cells[k]];
+          let m=was&allowed;
+          if((was&(was-1))!==0)m&=~singles;
+          if(m===0)return false;
+          if(m!==was){c[cells[k]]=m;changed=true;}
+        }
+      }
+    }
+    return true;
+  }
+  function search(c){
+    if(sols.length>=limit||aborted)return;
+    if(++nodes>nodeLimit){aborted=true;return;}
+    if(!propagate(c))return;
+    let best=-1,bc=10;
+    for(const w of whites){
+      const k=PC[c[w]];
+      if(k>1&&k<bc){bc=k;best=w;if(k===2)break;}
+    }
+    if(best<0){sols.push(Array.from(c));return;}
+    const m=c[best];
+    for(let d=1;d<=9;d++){
+      if((m>>(d-1))&1){
+        const c2=Int16Array.from(c);c2[best]=1<<(d-1);
+        search(c2);
+        if(sols.length>=limit||aborted)return;
+      }
+    }
+  }
+  const c0=new Int16Array(N);
+  for(const w of whites)c0[w]=511;
+  search(c0);
+  return {sols,aborted};
+}
+
+function hasSwapRect(P){
+  const n=P.n,s=P.sol;
+  for(const a of P.whites){
+    const hr=P.hRun[a],vr=P.vRun[a];
+    for(const b of P.runs[hr].cells){ if(b<=a)continue;
+      for(const c of P.runs[vr].cells){ if(c<=a)continue;
+        const d=c+(b-a);
+        if(d<P.N&&P.w[Math.floor(d/n)][d%n]&&P.hRun[d]===P.hRun[c]&&P.vRun[d]===P.vRun[b]){
+          if(s[a]===s[d]&&s[b]===s[c])return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+// 칸 하나를 검게 바꾼 뒤 길이 1 묶음을 연쇄 제거하고 가장 큰 덩어리만 남김
+function tidy(w,n){
+  for(let g=0;g<40;g++){
+    let ch=false;
+    for(let r=1;r<n;r++)for(let c=1;c<n;c++){
+      if(!w[r][c])continue;
+      const h=w[r][c-1]||(c+1<n&&w[r][c+1]);
+      const v=w[r-1][c]||(r+1<n&&w[r+1][c]);
+      if(!h||!v){w[r][c]=false;ch=true;}
+    }
+    if(!ch)break;
+  }
+  const comp=Array.from({length:n},()=>Array(n).fill(-1));
+  let best=-1,bestSize=0,id=0;
+  for(let r=1;r<n;r++)for(let c=1;c<n;c++){
+    if(!w[r][c]||comp[r][c]!==-1)continue;
+    let size=0;const st=[[r,c]];comp[r][c]=id;
+    while(st.length){const [y,x]=st.pop();size++;
+      for(const [dy,dx] of [[1,0],[-1,0],[0,1],[0,-1]]){const yy=y+dy,xx=x+dx;
+        if(yy>=1&&xx>=1&&yy<n&&xx<n&&w[yy][xx]&&comp[yy][xx]===-1){comp[yy][xx]=id;st.push([yy,xx]);}}}
+    if(size>bestSize){bestSize=size;best=id;}id++;
+  }
+  for(let r=1;r<n;r++)for(let c=1;c<n;c++)if(w[r][c]&&comp[r][c]!==best)w[r][c]=false;
+  return bestSize;
+}
+function tryMake(n){
+  const maxLen=n<=5?4:(n<=7?5:6);
+  const minW=Math.round(0.5*(n-1)*(n-1)),minKeep=Math.round(0.35*(n-1)*(n-1));
+  const w=genLayout(n,maxLen,minW);
+  if(!w)return null;
+  let P=buildPuzzle(w,n);
+  let okFill=false;
+  for(let f=0;f<4;f++){P.sol.fill(0);if(!fillPuzzle(P))return null;if(!hasSwapRect(P)){okFill=true;break;}}
+  if(!okFill)return null;
+  setSums(P);
+  for(let rep=0;rep<40;rep++){
+    const r=solveCount(P,2,4000);
+    if(r.aborted||r.sols.length===0)return null;
+    if(r.sols.length===1)return P;
+    const a=r.sols[0],b=r.sols[1];
+    const diff=shuffle(P.whites.filter(i=>a[i]!==b[i]));
+    let np=null;
+    for(const i of diff){
+      const w2=P.w.map(x=>x.slice());
+      w2[Math.floor(i/n)][i%n]=false;
+      if(tidy(w2,n)>=minKeep){
+        const Q=buildPuzzle(w2,n);
+        Q.sol=P.sol.slice();
+        for(let k=0;k<Q.N;k++)if(!Q.w[Math.floor(k/n)][k%n])Q.sol[k]=0;
+        setSums(Q);np=Q;break;
+      }
+    }
+    if(!np)return null;
+    P=np;
+  }
+  return null;
+}
+/*GEN_END*/
+
+// 고정 문제: 0=검은 칸, 숫자=정답 (쉬움/보통/어려움 각 5개, 유일해 검증 완료)
+const FIXED={"easy":[["00000","00000","00021","09386","05132"],["00000","00000","04800","01543","00095"],["00000","00000","00019","09458","07200"],["00000","00710","00950","09400","08100"],["00000","00000","00059","07314","06100"]],"normal":[["0000000","0001200","0312500","0650000","0970000","0026000","0034000"],["0000000","0000210","0006350","0087000","0821400","0640670","0000130"],["0000000","0000079","0000015","0008534","0003100","0000845","0000029"],["0000000","0120000","0795000","0002800","0740910","0984570","0028000"],["0000000","0028000","0079000","0850000","0410000","0642150","0003590"]],"hard":[["000000000","085005100","064297300","000174200","000008700","000256000","002489000","001300000","004900000"],["000000000","043000430","051804210","000239500","000013000","000180000","001254000","079095000","084000000"],["000000000","000000000","000000000","093000000","041800000","000170018","042036124","085492300","031600000"],["000000000","004210089","008795016","000009340","000000620","000000091","000001758","000005300","000000000"],["000000000","000009630","009805210","004697000","045026700","098000320","000017540","000085000","000000000"]]};
+
+// 현재 입력(vals)을 고정한 상태에서 각 칸의 후보 비트마스크를 구함. 모순이면 null
+function candidates(P,vals){
+  const c=new Int16Array(P.N);
+  for(const w of P.whites)c[w]=vals[w]?1<<(vals[w]-1):511;
+  let changed=true;
+  while(changed){
+    changed=false;
+    for(const run of P.runs){
+      const cells=run.cells,L=cells.length;
+      let singles=0;
+      for(let k=0;k<L;k++){
+        const m=c[cells[k]];
+        if(m===0)return null;
+        if((m&(m-1))===0){if(singles&m)return null;singles|=m;}
+      }
+      const combos=COMBO[L][run.sum];
+      if(!combos)return null;
+      let allowed=0;
+      for(const cm of combos){
+        if((cm&singles)!==singles)continue;
+        let ok=true;
+        for(let k=0;k<L;k++){if(!(c[cells[k]]&cm)){ok=false;break;}}
+        if(ok)allowed|=cm;
+      }
+      if(!allowed)return null;
+      for(let k=0;k<L;k++){
+        const was=c[cells[k]];
+        let m=was&allowed;
+        if((was&(was-1))!==0)m&=~singles;
+        if(m===0)return null;
+        if(m!==was){c[cells[k]]=m;changed=true;}
+      }
+    }
+  }
+  return c;
+}
+function fromGrid(g){
+  const n=g.length,w=g.map(s=>[...s].map(ch=>ch!=='0'));
+  const P=buildPuzzle(w,n);
+  for(let i=0;i<n*n;i++){const ch=g[Math.floor(i/n)][i%n];P.sol[i]=ch==='0'?0:+ch;}
+  setSums(P);return P;
+}
+
+// ======================= 화면/게임 =======================
+const MAX_CHECK=2,MAX_HINT=3;
+const $=id=>document.getElementById(id);
+const SIZES={easy:5,normal:7,hard:9},LNAME={easy:'쉬움',normal:'보통',hard:'어려움'};
+let level='easy',pick=0,P=null,S=null,sel=-1,noteMode=false,undoStack=[],redoStack=[];
+let els=[],clueEls=[],token=0,padOpen=false,msgTimer=0,helperOn=true,bubbleRun=-1;
+let tStart=0,tAcc=0,running=false;
+
+function fmt(ms){const s=Math.floor(ms/1000);return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+function elapsed(){return tAcc+(running?Date.now()-tStart:0);}
+setInterval(()=>{$('timer').textContent=fmt(elapsed());},250);
+function startTimer(){tAcc=0;tStart=Date.now();running=true;}
+function stopTimer(){if(running){tAcc+=Date.now()-tStart;running=false;}}
+function resumeTimer(){if(!running){tStart=Date.now();running=true;}}
+
+function msg(t){
+  $('msg').textContent=t;clearTimeout(msgTimer);
+  msgTimer=setTimeout(()=>{$('msg').textContent='';},3500);
+}
+// 완성 기록(브라우저 저장)
+function doneKey(){return 'kakuro.done.'+level+'.'+pick;}
+function isDone(l,p){try{return localStorage.getItem('kakuro.done.'+l+'.'+p)==='1';}catch(e){return false;}}
+function markDone(){try{if(pick!=='r')localStorage.setItem(doneKey(),'1');}catch(e){}}
+
+function generate(n,my,cb){
+  let tries=0;
+  (function step(){
+    if(my!==token)return;
+    const t1=performance.now();
+    while(performance.now()-t1<30){
+      tries++;
+      const p=tryMake(n);
+      if(p){cb(p);return;}
+    }
+    $('coverText').textContent='퍼즐 만드는 중… ('+tries+'번 시도)';
+    setTimeout(step,0);
+  })();
+}
+
+function startPuzzle(p){
+  P=p;
+  S={val:Array(P.N).fill(0),notes:Array(P.N).fill(0),bad:new Set(),hintCells:new Set(),done:false,paused:false,hints:0,checks:0};
+  undoStack=[];redoStack=[];
+  buildBoard();render();
+  $('cover').classList.remove('show');
+  startTimer();
+}
+function newGame(){
+  const my=++token;
+  closePad();hideModal('win');closeBubble();
+  S=null;sel=-1;running=false;clearTimeout(msgTimer);$('msg').textContent='';
+  $('timer').textContent='00:00';
+  $('pname').textContent=LNAME[level]+' '+(pick==='r'?'🎲 랜덤':(pick+1)+'번');
+  $('cover').innerHTML='<div class="spin"></div><div id="coverText">퍼즐 만드는 중…</div>';
+  $('cover').classList.add('show');
+  $('btnPause').innerHTML='⏸<span class="txt"> 일시정지</span>';
+  updateSeg();
+  if(pick==='r'){
+    generate(SIZES[level],my,p=>{if(my===token)startPuzzle(p);});
+  }else{
+    startPuzzle(fromGrid(FIXED[level][pick]));
+  }
+}
+function updateSeg(){
+  for(const b of $('diff').children)b.classList.toggle('on',b.dataset.d===level);
+  for(const b of $('pick').children){
+    const p=b.dataset.p==='r'?'r':+b.dataset.p;
+    b.classList.toggle('on',p===pick);
+    b.classList.toggle('done',p!=='r'&&isDone(level,p));
+  }
+}
+
+function buildBoard(){
+  const b=$('board');b.innerHTML='';
+  let r0=P.n,r1=0,c0=P.n,c1=0;
+  for(const i of P.whites){const r=Math.floor(i/P.n),c=i%P.n;r0=Math.min(r0,r);r1=Math.max(r1,r);c0=Math.min(c0,c);c1=Math.max(c1,c);}
+  r0--;c0--;
+  document.documentElement.style.setProperty('--cols',c1-c0+1);
+  document.documentElement.style.setProperty('--rows',r1-r0+1);
+  els=new Array(P.N).fill(null);clueEls=new Array(P.runs.length).fill(null);
+  const clueCell={};
+  P.runs.forEach((run,ri)=>{(clueCell[run.clue]=clueCell[run.clue]||[]).push(ri);});
+  const frag=document.createDocumentFragment();
+  const isWhite=(r,c)=>r>=1&&c>=1&&r<P.n&&c<P.n&&P.w[r][c];
+  const isDrawn=(r,c)=>isWhite(r,c)||!!clueCell[r*P.n+c];
+  for(let r=r0;r<=r1;r++)for(let c=c0;c<=c1;c++){
+    const i=r*P.n+c;
+    const d=document.createElement('div');
+    if(isDrawn(r,c)){
+      if(!isDrawn(r-1,c))d.classList.add('bt');
+      if(!isDrawn(r+1,c))d.classList.add('bb');
+      if(!isDrawn(r,c-1))d.classList.add('bl');
+      if(!isDrawn(r,c+1))d.classList.add('br');
+    }
+    if(isWhite(r,c)){
+      d.classList.add('cell','white');d.dataset.i=i;els[i]=d;
+    }else{
+      d.classList.add('cell','black');
+      if(clueCell[i]){
+        d.classList.add('clue');
+        for(const ri of clueCell[i]){
+          const run=P.runs[ri];
+          const sp=document.createElement('span');
+          sp.className=run.dir==='h'?'ca':'cd';
+          sp.textContent=run.sum;sp.dataset.run=ri;
+          d.appendChild(sp);clueEls[ri]=sp;
+        }
+      }
+    }
+    frag.appendChild(d);
+  }
+  b.appendChild(frag);
+}
+
+function snap(){return JSON.stringify([S.val,S.notes]);}
+function restore(str){const [v,n]=JSON.parse(str);S.val=v;S.notes=n;}
+function mutate(fn){
+  if(!S||S.done||S.paused)return false;
+  const before=snap();fn();
+  if(snap()!==before){
+    undoStack.push(before);if(undoStack.length>600)undoStack.shift();
+    redoStack=[];S.bad.clear();S.hintCells.clear();
+  }
+  afterChange();return true;
+}
+function afterChange(){
+  render();
+  if(S&&!S.done&&P.whites.every(i=>S.val[i]===P.sol[i]))win();
+}
+function undo(){
+  if(!S||S.done||S.paused||!undoStack.length)return;
+  redoStack.push(snap());restore(undoStack.pop());S.bad.clear();S.hintCells.clear();afterChange();
+}
+function redo(){
+  if(!S||S.done||S.paused||!redoStack.length)return;
+  undoStack.push(snap());restore(redoStack.pop());S.bad.clear();S.hintCells.clear();afterChange();
+}
+function restart(){
+  if(!S||S.paused)return;
+  if(!undoStack.length&&!S.done)return;
+  if(!confirm('입력한 내용을 모두 지우고 처음부터 할까요?'))return;
+  newGame();
+}
+
+function clearPeerNotes(i,d){
+  const bit=~(1<<(d-1));
+  for(const r of [P.hRun[i],P.vRun[i]])for(const x of P.runs[r].cells)S.notes[x]&=bit;
+}
+function input(d){
+  if(!S||S.done||S.paused)return;
+  if(sel<0){msg('먼저 칸을 선택하세요');return;}
+  if(noteMode){
+    if(S.val[sel]){msg('숫자가 들어간 칸에는 메모를 쓸 수 없어요');return;}
+    mutate(()=>{S.notes[sel]^=1<<(d-1);});
+  }else{
+    mutate(()=>{
+      if(S.val[sel]===d){S.val[sel]=0;}
+      else{S.val[sel]=d;S.notes[sel]=0;clearPeerNotes(sel,d);}
+    });
+    if(padOpen&&!S.done)closePad();
+  }
+}
+function clearCell(){
+  if(!S||S.done||S.paused||sel<0)return;
+  mutate(()=>{if(S.val[sel])S.val[sel]=0;else S.notes[sel]=0;});
+}
+function findForced(){
+  const c=candidates(P,S.val);
+  if(!c)return null;
+  const empty=P.whites.filter(i=>!S.val[i]);
+  let forced=empty.filter(i=>PC[c[i]]===1);
+  if(!forced.length){
+    for(const i of empty){
+      let left=0;
+      for(let d=1;d<=9;d++){
+        if(!((c[i]>>(d-1))&1))continue;
+        const v=S.val.slice();v[i]=d;
+        if(candidates(P,v))left++;
+        if(left>1)break;
+      }
+      if(left===1)forced.push(i);
+    }
+  }
+  if(!forced.length){
+    let best=-1,bc=10;
+    for(const i of empty){if(PC[c[i]]<bc){bc=PC[c[i]];best=i;}}
+    return {cells:best>=0?[best]:[],weak:true};
+  }
+  return {cells:forced,weak:false};
+}
+function giveHint(){
+  if(!S||S.done||S.paused)return;
+  if(S.hints>=MAX_HINT){msg('힌트는 게임당 '+MAX_HINT+'회까지만 쓸 수 있어요');return;}
+  if(!P.whites.some(i=>!S.val[i])){msg('빈 칸이 없어요. 틀린 칸 확인을 써 보세요');return;}
+  S.hints++;
+  const r=findForced();
+  S.bad.clear();S.hintCells.clear();
+  if(!r){render();msg('지금 넣은 숫자 중에 틀린 게 있어요. 다시 살펴보세요!');return;}
+  let cells=r.cells.slice();
+  if(sel>=0)cells.sort((a,b)=>dist(a,sel)-dist(b,sel));
+  cells=cells.slice(0,2);
+  cells.forEach(i=>S.hintCells.add(i));
+  render();
+  if(r.weak)msg('바로 정해지는 칸은 없어요. 초록 칸이 후보가 가장 적으니 거기부터 생각해 보세요');
+  else msg('초록 테두리 칸은 지금 숫자가 하나로 정해져요! 합 조합을 따져 보세요');
+}
+function dist(a,b){return Math.abs(Math.floor(a/P.n)-Math.floor(b/P.n))+Math.abs(a%P.n-b%P.n);}
+function checkWrong(){
+  if(!S||S.done||S.paused)return;
+  if(S.checks>=MAX_CHECK){msg('틀린 칸 확인은 게임당 '+MAX_CHECK+'회까지만 쓸 수 있어요');return;}
+  const filled=P.whites.filter(i=>S.val[i]);
+  if(!filled.length){msg('아직 입력한 칸이 없어요');return;}
+  const wrong=filled.filter(i=>S.val[i]!==P.sol[i]);
+  S.checks++;S.bad=new Set(wrong);S.hintCells.clear();render();
+  if(wrong.length)msg('틀린 칸이 '+wrong.length+'개 있어요 (빨간 칸)');
+  else msg('지금까지 입력한 칸은 모두 맞아요! 👍');
+}
+
+function move(dr,dc){
+  if(!S||S.paused)return;
+  if(sel<0){sel=P.whites[0];render();return;}
+  let r=Math.floor(sel/P.n)+dr,c=sel%P.n+dc;
+  while(r>=1&&c>=1&&r<P.n&&c<P.n){
+    if(P.w[r][c]){sel=r*P.n+c;render();return;}
+    r+=dr;c+=dc;
+  }
+}
+
+// ----- 렌더 -----
+function render(){
+  if(!P||!S)return;
+  const hl=new Set(),activeRuns=new Set();
+  if(sel>=0){
+    for(const r of [P.hRun[sel],P.vRun[sel]]){activeRuns.add(r);P.runs[r].cells.forEach(i=>hl.add(i));}
+  }
+  const dup=new Set();
+  const runOk=[];
+  P.runs.forEach((run,ri)=>{
+    const seen={};let full=true,sum=0;
+    for(const i of run.cells){
+      const v=S.val[i];
+      if(!v){full=false;continue;}
+      sum+=v;(seen[v]=seen[v]||[]).push(i);
+    }
+    let hasDup=false;
+    for(const v in seen)if(seen[v].length>1){hasDup=true;seen[v].forEach(i=>dup.add(i));}
+    runOk[ri]=full&&!hasDup&&sum===run.sum;
+  });
+  const curV=sel>=0?S.val[sel]:0;
+  for(const i of P.whites){
+    const el=els[i];
+    let cls='cell white';
+    for(const k of ['bt','bb','bl','br'])if(el.classList.contains(k))cls+=' '+k;
+    if(i===sel)cls+=' sel';
+    if(i!==sel&&hl.has(i))cls+=' run';
+    if(i!==sel&&curV&&S.val[i]===curV)cls+=' same';
+    if(dup.has(i))cls+=' dup';
+    if(S.bad.has(i))cls+=' bad';
+    if(S.hintCells.has(i))cls+=' hintcell';
+    el.className=cls;
+    const v=S.val[i];
+    if(v){el.textContent=v;}
+    else if(S.notes[i]){
+      let h='<div class="notes">';
+      for(let d=1;d<=9;d++)h+='<span>'+((S.notes[i]>>(d-1))&1?d:'')+'</span>';
+      el.innerHTML=h+'</div>';
+    }else el.textContent='';
+  }
+  P.runs.forEach((run,ri)=>{
+    const sp=clueEls[ri];if(!sp)return;
+    sp.className=(run.dir==='h'?'ca':'cd')+(runOk[ri]?' ok':'')+(activeRuns.has(ri)?' active':'')+(bubbleRun===ri?' open':'');
+  });
+  renderPad();renderBubble();
+  $('btnNote').innerHTML='✏️<span class="txt"> 메모 '+(noteMode?'ON':'OFF')+'</span>';
+  $('btnNote').classList.toggle('on',noteMode);
+  $('btnUndo').disabled=!undoStack.length;
+  $('btnRedo').disabled=!redoStack.length;
+  $('btnCheck').innerHTML='✔<span class="txt"> 틀린 칸 확인</span> <span class="cnt">'+(MAX_CHECK-S.checks)+'/'+MAX_CHECK+'</span>';
+  $('btnHint').innerHTML='💡<span class="txt"> 힌트</span> <span class="cnt">'+(MAX_HINT-S.hints)+'/'+MAX_HINT+'</span>';
+  $('btnCheck').disabled=S.checks>=MAX_CHECK||S.done;
+  $('btnHint').disabled=S.hints>=MAX_HINT||S.done;
+}
+
+// ----- 합 조합 -----
+function digitsOf(m){const a=[];for(let d=1;d<=9;d++)if((m>>(d-1))&1)a.push(d);return a;}
+function chips(L,sum,E){
+  const list=(COMBO[L]||{})[sum]||[];
+  if(!list.length)return '<div class="none">가능한 조합이 없어요</div>';
+  return '<div class="chips">'+list.map(m=>'<span class="chip'+(((m&E)===E)?'':' off')+'">'+digitsOf(m).join('+')+'</span>').join('')+'</div>';
+}
+function runBlock(run,label){
+  const L=run.cells.length;
+  let E=0,filled=0,fs=0;
+  for(const i of run.cells){const v=S.val[i];if(v){E|=1<<(v-1);filled++;fs+=v;}}
+  const list=COMBO[L][run.sum]||[];
+  const okc=list.filter(m=>(m&E)===E).length;
+  let tip='';
+  if(list.length===1)tip='<div class="tip">💡 이 합은 조합이 딱 하나예요!</div>';
+  else if(E&&okc===1)tip='<div class="tip">💡 입력한 숫자와 맞는 조합이 하나로 좁혀졌어요.</div>';
+  const rem=filled?'<span class="rem">남은 '+(L-filled)+'칸 · 남은 합 '+(run.sum-fs)+'</span>':'';
+  return '<div class="runblock"><h4>'+label+' 합 '+run.sum+', 칸 '+L+'개'+rem+'</h4>'+tip+chips(L,run.sum,E)+'</div>';
+}
+function openBubble(ri){
+  if(!helperOn||!S||S.paused)return;
+  closePad();
+  bubbleRun=ri;$('bubble').classList.add('show');render();positionBubble();
+}
+function renderBubble(){
+  if(bubbleRun<0)return;
+  const run=P.runs[bubbleRun];
+  $('bubbleBody').innerHTML=runBlock(run,run.dir==='h'?'가로 →':'세로 ↓');
+}
+function positionBubble(){
+  if(bubbleRun<0)return;
+  const sp=clueEls[bubbleRun],bb=$('bubble');
+  const r=sp.getBoundingClientRect(),bw=bb.offsetWidth,bh=bb.offsetHeight;
+  let top=r.bottom+8;if(top+bh>innerHeight-6)top=r.top-bh-8;if(top<6)top=6;
+  let left=r.left+r.width/2-bw/2;left=Math.max(6,Math.min(left,innerWidth-bw-6));
+  bb.style.top=top+'px';bb.style.left=left+'px';
+}
+function closeBubble(){
+  if(bubbleRun<0)return;
+  bubbleRun=-1;$('bubble').classList.remove('show');
+  if(P&&S)render();
+}
+function setHelper(on){
+  helperOn=on;document.body.classList.toggle('helper',on);
+  const b=$('btnHelper');b.setAttribute('aria-pressed',on);b.innerHTML='<span class="ico">🧮</span><span class="txt"> 조합 도우미 '+(on?'ON':'OFF')+'</span>';
+  b.style.opacity=on?'':'.6';
+  if(!on)closeBubble();
+}
+function renderCalc(){
+  const s=+$('calcSum').value,L=+$('calcLen').value;
+  const list=(COMBO[L]||{})[s]||[];
+  $('calcOut').innerHTML=(list.length?'<div class="rem" style="margin:0 0 6px">'+list.length+'가지</div>':'')+chips(L,s,0);
+}
+(function initHelp(){
+  const sl=$('calcLen');
+  for(let L=2;L<=9;L++){const o=document.createElement('option');o.value=L;o.textContent=L+'개';sl.appendChild(o);}
+  $('calcSum').addEventListener('input',renderCalc);sl.addEventListener('change',renderCalc);
+  renderCalc();
+  let h='';
+  for(let L=2;L<=6;L++){
+    const parts=[];
+    for(const s in COMBO[L])if(COMBO[L][s].length===1)parts.push(s+' = '+digitsOf(COMBO[L][s][0]).join('+'));
+    h+='<div class="fixrow"><b>'+L+'칸</b><div class="chips">'+parts.map(p=>'<span class="chip">'+p+'</span>').join('')+'</div></div>';
+  }
+  $('fixedCombos').innerHTML=h;
+})();
+
+// ----- 모달 -----
+function showModal(id){$(id).classList.add('show');}
+function hideModal(id){$(id).classList.remove('show');}
+document.querySelectorAll('.modal').forEach(m=>{
+  m.addEventListener('click',e=>{if(e.target===m||e.target.closest('[data-close]'))hideModal(m.id);});
+});
+
+// ----- 숫자 패드 -----
+(function initPad(){
+  const box=$('padDigits');
+  for(let d=1;d<=9;d++){
+    const b=document.createElement('button');b.textContent=d;b.dataset.d=d;
+    b.addEventListener('click',e=>{e.stopPropagation();input(d);});
+    box.appendChild(b);
+  }
+  $('padClear').addEventListener('click',e=>{e.stopPropagation();clearCell();closePad();});
+  $('padNote').addEventListener('click',e=>{e.stopPropagation();toggleNote();});
+  $('padClose').addEventListener('click',e=>{e.stopPropagation();closePad();});
+})();
+const dockMQ=window.matchMedia('(max-width:640px)');
+function renderPad(){
+  if(!padOpen)return;
+  const cur=sel>=0?S.val[sel]:0,notes=sel>=0?S.notes[sel]:0;
+  for(const b of $('padDigits').children){
+    const d=+b.dataset.d;
+    b.className=(!noteMode&&cur===d?'cur':'')+(noteMode&&((notes>>(d-1))&1)?' note':'');
+  }
+  $('padNote').classList.toggle('on',noteMode);
+  $('padNote').textContent='메모 '+(noteMode?'ON':'OFF');
+}
+function openPad(){
+  if(sel<0)return;
+  closeBubble();
+  padOpen=true;
+  const pad=$('pad');pad.classList.add('show');
+  renderPad();positionPad();
+}
+function positionPad(){
+  if(!padOpen)return;
+  const pad=$('pad');
+  if(dockMQ.matches){
+    pad.style.left='';pad.style.top='';
+    document.body.classList.add('padopen');
+    if(sel>=0&&els[sel]){
+      const r=els[sel].getBoundingClientRect();
+      if(r.bottom>innerHeight-pad.offsetHeight-10)els[sel].scrollIntoView({block:'center',behavior:'smooth'});
+    }
+    return;
+  }
+  document.body.classList.remove('padopen');
+  if(sel<0||!els[sel])return;
+  const r=els[sel].getBoundingClientRect(),pw=pad.offsetWidth,ph=pad.offsetHeight;
+  const br=$('board').getBoundingClientRect();
+  // 판을 가리지 않도록: 판 오른쪽 → 판 왼쪽 → 칸 아래/위 순서로 둠
+  let left,top=r.top+r.height/2-ph/2;
+  if(br.right+10+pw<=innerWidth-6)left=br.right+10;
+  else if(br.left-10-pw>=6)left=br.left-10-pw;
+  else{
+    left=r.left+r.width/2-pw/2;top=r.bottom+6;
+    if(top+ph>innerHeight-6)top=r.top-ph-6;
+  }
+  top=Math.max(6,Math.min(top,innerHeight-ph-6));
+  left=Math.max(6,Math.min(left,innerWidth-pw-6));
+  pad.style.top=top+'px';pad.style.left=left+'px';
+}
+function closePad(){
+  padOpen=false;$('pad').classList.remove('show');document.body.classList.remove('padopen');
+}
+window.addEventListener('resize',()=>{positionPad();positionBubble();});
+window.addEventListener('scroll',()=>{if(padOpen&&!dockMQ.matches)positionPad();positionBubble();},{passive:true});
+function toggleNote(){noteMode=!noteMode;render();}
+
+// ----- 완성 -----
+function win(){
+  S.done=true;stopTimer();closePad();closeBubble();markDone();updateSeg();
+  const clean=(S.hints===0&&S.checks===0);
+  $('winInfo').innerHTML=LNAME[level]+' '+(pick==='r'?'랜덤':(pick+1)+'번')+' · 걸린 시간 <b>'+fmt(elapsed())+'</b><br>힌트 '+S.hints+'회 · 틀린 칸 확인 '+S.checks+'회'+(clean?'<br><b style="color:var(--good)">🏆 힌트·확인 없이 완성!</b>':'');
+  $('winNext').textContent=pick==='r'?'새 랜덤 문제':(pick<4?'다음 문제 ('+(pick+2)+'번)':(level==='hard'?'새 랜덤 문제':'다음 난이도로'));
+  showModal('win');
+  confetti();render();
+}
+function nextPuzzle(){
+  if(pick==='r'){newGame();return;}
+  if(pick<4)pick++;
+  else if(level==='easy'){level='normal';pick=0;}
+  else if(level==='normal'){level='hard';pick=0;}
+  else pick='r';
+  newGame();
+}
+function confetti(){
+  const cv=$('confetti'),ctx=cv.getContext('2d');
+  cv.width=innerWidth;cv.height=innerHeight;
+  const ps=Array.from({length:170},()=>({x:Math.random()*cv.width,y:-20-Math.random()*cv.height*.6,vx:(Math.random()-.5)*3,vy:2+Math.random()*4,s:6+Math.random()*8,c:'hsl('+Math.floor(Math.random()*360)+',85%,60%)',r:Math.random()*6,vr:(Math.random()-.5)*.3}));
+  const t0=performance.now();
+  (function f(t){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    for(const p of ps){
+      p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);ctx.restore();
+    }
+    if(t-t0<5000)requestAnimationFrame(f);else ctx.clearRect(0,0,cv.width,cv.height);
+  })(t0);
+}
+
+// ----- 일시정지 -----
+function togglePause(){
+  if(!S||S.done)return;
+  if(!S.paused){
+    S.paused=true;stopTimer();closePad();closeBubble();
+    $('cover').innerHTML='<div style="font-size:1.4em">⏸ 일시정지</div><button class="primary" id="btnResume">계속하기</button>';
+    $('cover').classList.add('show');
+    $('btnResume').addEventListener('click',togglePause);
+    $('btnPause').innerHTML='▶<span class="txt"> 계속하기</span>';
+  }else{
+    S.paused=false;resumeTimer();
+    $('cover').classList.remove('show');
+    $('btnPause').innerHTML='⏸<span class="txt"> 일시정지</span>';
+  }
+}
+
+// ----- 이벤트 -----
+$('board').addEventListener('click',e=>{
+  if(!S||S.paused)return;
+  const clue=e.target.closest('.ca,.cd');
+  if(clue){
+    const ri=+clue.dataset.run;
+    if(bubbleRun===ri)closeBubble();else openBubble(ri);
+    return;
+  }
+  const el=e.target.closest('.cell.white');
+  if(!el)return;
+  const i=+el.dataset.i;
+  if(i===sel&&padOpen){closePad();render();return;}
+  sel=i;render();
+  if(!S.done)openPad();
+});
+document.addEventListener('pointerdown',e=>{
+  if(bubbleRun>=0&&!e.target.closest('#bubble')&&!e.target.closest('.ca,.cd'))closeBubble();
+  if(!padOpen)return;
+  if(e.target.closest('#pad')||e.target.closest('.cell.white'))return;
+  closePad();
+});
+$('bubbleClose').addEventListener('click',closeBubble);
+$('btnHelper').addEventListener('click',()=>setHelper(!helperOn));
+$('btnHelp').addEventListener('click',()=>showModal('help'));
+$('diff').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  level=b.dataset.d;newGame();
+});
+$('pick').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  pick=b.dataset.p==='r'?'r':+b.dataset.p;newGame();
+});
+$('btnBig').addEventListener('click',()=>{
+  const on=document.body.classList.toggle('big');
+  $('btnBig').setAttribute('aria-pressed',on);
+  $('btnBig').innerHTML='<span class="ico">🖥</span><span class="txt">'+(on?' 기본 크기':' 크게 보기')+'</span>';
+  positionPad();positionBubble();
+});
+$('btnUndo').addEventListener('click',undo);
+$('btnRedo').addEventListener('click',redo);
+$('btnNote').addEventListener('click',toggleNote);
+$('btnClear').addEventListener('click',clearCell);
+$('btnCheck').addEventListener('click',checkWrong);
+$('btnHint').addEventListener('click',giveHint);
+$('btnRestart').addEventListener('click',restart);
+$('btnPause').addEventListener('click',togglePause);
+$('winNext').addEventListener('click',nextPuzzle);
+$('winClose').addEventListener('click',()=>hideModal('win'));
+
+document.addEventListener('keydown',e=>{
+  const t=e.target;
+  if(t&&(t.tagName==='INPUT'||t.tagName==='SELECT'||t.tagName==='TEXTAREA'))return;
+  if(!S)return;
+  const k=e.key;
+  if((e.ctrlKey||e.metaKey)&&e.code==='KeyZ'){e.preventDefault();e.shiftKey?redo():undo();return;}
+  if((e.ctrlKey||e.metaKey)&&e.code==='KeyY'){e.preventDefault();redo();return;}
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  if(/^[1-9]$/.test(k)){e.preventDefault();input(+k);return;}
+  if(k==='0'||k==='Backspace'||k==='Delete'){e.preventDefault();clearCell();return;}
+  const arrows={ArrowUp:[-1,0],ArrowDown:[1,0],ArrowLeft:[0,-1],ArrowRight:[0,1]};
+  if(arrows[k]){e.preventDefault();closePad();move(...arrows[k]);return;}
+  if(k==='Escape'){closePad();closeBubble();hideModal('help');return;}
+  if(e.code==='KeyN'){toggleNote();return;}
+  if(e.code==='KeyH'){giveHint();return;}
+});
+
+newGame();
+</script>
+</body>
+</html>
