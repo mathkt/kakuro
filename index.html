@@ -113,6 +113,17 @@ body.nosel #dock button:not(#dkErase){opacity:.4}
 .calc input{width:70px}
 .fixrow{margin:6px 0}.fixrow b{display:block;margin-bottom:3px}
 #confetti{position:fixed;inset:0;pointer-events:none;z-index:95}
+/* 튜토리얼 */
+.tut{outline:4px solid #ff7a00;outline-offset:-2px;animation:tp 1s ease-in-out infinite;position:relative;z-index:2}
+@keyframes tp{50%{outline-color:#ffd27a}}
+#tutor{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--dock) + 10px);z-index:80;background:#fff;border:2px solid #ff7a00;border-radius:16px;box-shadow:0 10px 30px rgba(20,40,70,.3);padding:14px 16px 10px;width:min(440px,calc(100vw - 20px));display:none}
+#tutor.show{display:block}
+#tutor .step{font-size:.8em;color:var(--muted);margin-bottom:4px}
+#tutor .body{font-size:1.02em;line-height:1.5;min-height:3em}
+#tutor .foot{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+#tutor label{font-size:.85em;color:var(--muted);display:flex;align-items:center;gap:4px;margin-right:auto}
+#tutor .foot button{min-height:38px;padding:6px 14px}
+@media (max-height:480px) and (orientation:landscape){#tutor{bottom:10px;right:calc(var(--dockw) + 10px);left:auto;transform:none;width:min(360px,calc(100vw - var(--dockw) - 20px))}}
 /* 수업용 크게 보기(전체화면) */
 body.big{--csmax:130px;--big:56px;--small:38px;--dock:124px;font-size:19px}
 body.big .tools button{min-height:48px;padding:10px 16px}
@@ -213,6 +224,7 @@ body.big .keys{display:none}
   <div class="card">
     <button class="x" data-close>✕</button>
     <h3>❓ 도움말</h3>
+    <button id="btnTut" style="margin-bottom:8px">🎓 튜토리얼 다시 보기</button>
     <details open>
       <summary>게임 방법</summary>
       <ul>
@@ -249,6 +261,15 @@ body.big .keys{display:none}
       <button class="primary" id="winNext">다음 문제</button>
       <button id="winClose">판 보기</button>
     </div>
+  </div>
+</div>
+<div id="tutor">
+  <div class="step" id="tutStep"></div>
+  <div class="body" id="tutBody"></div>
+  <div class="foot">
+    <label><input type="checkbox" id="tutSkip"> 다음부터 건너뛰기</label>
+    <button id="tutPrev">이전</button>
+    <button class="primary" id="tutNext">다음</button>
   </div>
 </div>
 <canvas id="confetti"></canvas>
@@ -514,7 +535,7 @@ function tryMake(n){
 /*GEN_END*/
 
 // 고정 문제: 0=검은 칸, 숫자=정답 (쉬움/보통/어려움 각 5개, 유일해 검증 완료)
-const FIXED={"easy":[["00000","00000","00021","09386","05132"],["00000","00000","04800","01543","00095"],["00000","00000","00019","09458","07200"],["00000","00710","00950","09400","08100"],["00000","00000","00059","07314","06100"]],"normal":[["0000000","0001200","0312500","0650000","0970000","0026000","0034000"],["0000000","0000210","0006350","0087000","0821400","0640670","0000130"],["0000000","0000079","0000015","0008534","0003100","0000845","0000029"],["0000000","0120000","0795000","0002800","0740910","0984570","0028000"],["0000000","0028000","0079000","0850000","0410000","0642150","0003590"]],"hard":[["000000000","085005100","064297300","000174200","000008700","000256000","002489000","001300000","004900000"],["000000000","043000430","051804210","000239500","000013000","000180000","001254000","079095000","084000000"],["000000000","000000000","000000000","093000000","041800000","000170018","042036124","085492300","031600000"],["000000000","004210089","008795016","000009340","000000620","000000091","000001758","000005300","000000000"],["000000000","000009630","009805210","004697000","045026700","098000320","000017540","000085000","000000000"]]};
+const FIXED={"easy":[["00000","01300","02100","04200","00000"],["00000","00000","00790","00860","00980"],["00000","00000","00019","09458","07200"],["00000","00710","00950","09400","08100"],["00000","00000","00059","07314","06100"]],"normal":[["0000000","0001200","0312500","0650000","0970000","0026000","0034000"],["0000000","0000210","0006350","0087000","0821400","0640670","0000130"],["0000000","0000079","0000015","0008534","0003100","0000845","0000029"],["0000000","0120000","0795000","0002800","0740910","0984570","0028000"],["0000000","0028000","0079000","0850000","0410000","0642150","0003590"]],"hard":[["000000000","085005100","064297300","000174200","000008700","000256000","002489000","001300000","004900000"],["000000000","043000430","051804210","000239500","000013000","000180000","001254000","079095000","084000000"],["000000000","000000000","000000000","093000000","041800000","000170018","042036124","085492300","031600000"],["000000000","004210089","008795016","000009340","000000620","000000091","000001758","000005300","000000000"],["000000000","000009630","009805210","004697000","045026700","098000320","000017540","000085000","000000000"]]};
 
 // 현재 입력(vals)을 고정한 상태에서 각 칸의 후보 비트마스크를 구함. 모순이면 null
 function candidates(P,vals){
@@ -607,7 +628,7 @@ function startPuzzle(p){
 }
 function newGame(){
   const my=++token;
-  hideModal('win');closeBubble();
+  hideModal('win');closeBubble();if(tutStep>=0)tutEnd();
   S=null;sel=-1;running=false;clearTimeout(msgTimer);$('msg').textContent='';
   $('timer').textContent='00:00';
   $('pname').textContent=LNAME[level]+' '+(pick==='r'?'🎲 랜덤':(pick+1)+'번');
@@ -853,7 +874,7 @@ function digitsOf(m){const a=[];for(let d=1;d<=9;d++)if((m>>(d-1))&1)a.push(d);r
 function chips(L,sum,E){
   const list=(COMBO[L]||{})[sum]||[];
   if(!list.length)return '<div class="none">—</div>';
-  return '<div class="chips">'+list.map(m=>'<span class="chip'+(((m&E)===E)?'':' off')+'">'+digitsOf(m).join('+')+'</span>').join('')+'</div>';
+  return '<div class="chips">'+list.map(m=>'<span class="chip'+(((m&E)===E)?'':' off')+'">'+digitsOf(m).join('')+'</span>').join('')+'</div>';
 }
 function openBubble(ri){
   if(!helperOn||!S||S.paused)return;
@@ -897,7 +918,7 @@ function renderCalc(){
   let h='';
   for(let L=2;L<=6;L++){
     const parts=[];
-    for(const s in COMBO[L])if(COMBO[L][s].length===1)parts.push(s+' = '+digitsOf(COMBO[L][s][0]).join('+'));
+    for(const s in COMBO[L])if(COMBO[L][s].length===1)parts.push(s+' = '+digitsOf(COMBO[L][s][0]).join(''));
     h+='<div class="fixrow"><b>'+L+'칸</b><div class="chips">'+parts.map(p=>'<span class="chip">'+p+'</span>').join('')+'</div></div>';
   }
   $('fixedCombos').innerHTML=h;
@@ -1053,8 +1074,52 @@ document.addEventListener('keydown',e=>{
   if(e.code==='KeyH'){giveHint();return;}
 });
 
+// ----- 튜토리얼 -----
+let tutStep=-1;
+function tutClear(){document.querySelectorAll('.tut').forEach(e=>e.classList.remove('tut'));}
+function tutHL(sels){tutClear();for(const s of sels){document.querySelectorAll(s).forEach(e=>e.classList.add('tut'));}}
+function tutSteps(){
+  // 조합이 하나뿐인 묶음 하나 고르기
+  let ex=null;
+  for(const run of P.runs){if(COMBO[run.cells.length][run.sum].length===1){ex=run;break;}}
+  const exText=ex?('예를 들어 '+(ex.dir==='h'?'가로':'세로')+' 합 <b>'+ex.sum+'</b>('+ex.cells.length+'칸)은 <b>'+digitsOf(COMBO[ex.cells.length][ex.sum][0]).join(', ')+'</b>밖에 없어요!'):'';
+  return [
+    {text:'<b>회색 칸의 숫자는 합</b>이에요.<br>오른쪽 위 숫자는 <b>가로(→)</b> 흰 칸들의 합, 왼쪽 아래 숫자는 <b>세로(↓)</b> 흰 칸들의 합이에요.',hl:['.cell.clue']},
+    {text:'<b>흰 칸을 누르고</b> 아래 큰 숫자를 눌러 1~9를 넣어요.<br>같은 숫자를 다시 누르면 지워져요.',hl:['.cell.white','#dkBig']},
+    {text:'한 묶음(연속된 흰 칸) 안에서는 <b>같은 숫자를 두 번 쓸 수 없어요.</b><br>'+exText,hl:ex?ex.cells.map(i=>'.cell[data-i="'+i+'"]'):['.cell.white']},
+    {text:'작은 숫자는 <b>메모</b>(후보 적어두기), ⌫는 <b>지우기</b>예요.<br>💡 <b>힌트</b>는 3번, ✔ <b>틀린 칸 확인</b>은 2번만 쓸 수 있어요.',hl:['#dkSmall','#dkErase','#btnHint','#btnCheck']},
+    {text:'🧮 <b>조합</b>을 켜고 합 숫자를 누르면 들어갈 수 있는 숫자 조합이 보여요.<br>묶음을 다 맞히면 합 숫자가 <b>초록색</b>으로 바뀌어요. 이제 시작!',hl:['#btnHelper']}
+  ];
+}
+function tutShow(k){
+  const steps=tutSteps();
+  if(k<0)k=0;
+  if(k>=steps.length){tutEnd();return;}
+  tutStep=k;
+  $('tutStep').textContent='튜토리얼 '+(k+1)+' / '+steps.length;
+  $('tutBody').innerHTML=steps[k].text;
+  $('tutPrev').disabled=k===0;
+  $('tutNext').textContent=k===steps.length-1?'시작!':'다음';
+  tutHL(steps[k].hl);
+  $('tutor').classList.add('show');
+}
+function tutEnd(){
+  tutStep=-1;tutClear();$('tutor').classList.remove('show');
+  try{if($('tutSkip').checked)localStorage.setItem('kakuro.tut.skip','1');else localStorage.removeItem('kakuro.tut.skip');}catch(e){}
+}
+function tutStart(){
+  hideModal('help');
+  if(!(level==='easy'&&pick===0)){level='easy';pick=0;newGame();}
+  try{$('tutSkip').checked=localStorage.getItem('kakuro.tut.skip')==='1';}catch(e){}
+  tutShow(0);
+}
+$('tutNext').addEventListener('click',()=>tutShow(tutStep+1));
+$('tutPrev').addEventListener('click',()=>tutShow(tutStep-1));
+$('btnTut').addEventListener('click',tutStart);
 setHelper(false);
 newGame();
+(function(){let skip=false;try{skip=localStorage.getItem('kakuro.tut.skip')==='1';}catch(e){}
+  if(!skip)setTimeout(tutStart,300);})();
 </script>
 </body>
 </html>
