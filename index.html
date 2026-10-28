@@ -38,8 +38,16 @@ header button.off{opacity:.55}
 .seg button.on:hover{background:#fff}
 .seg button .long{display:inline}.seg button .short{display:none}
 #pick button{min-width:40px;padding:6px 8px;position:relative}
-#pick button.done::after{content:"✔";position:absolute;right:2px;top:1px;font-size:.6em;color:#2e9e5b}
-#pick button.on.done::after{color:#1e8a4a}
+#pick button.done{background:#2e9e5b;color:#fff;font-weight:700}
+#pick button.done::after{content:"✔";position:absolute;right:3px;top:1px;font-size:.6em}
+#pick button.on.done{background:#1e8a4a;color:#fff}
+#pname.ok{color:var(--good);font-weight:700}
+#rec table{border-collapse:collapse;width:100%;font-size:.92em}
+#rec th,#rec td{padding:5px 6px;border-bottom:1px solid #e3eaf1;text-align:center;white-space:nowrap}
+#rec th{background:#f3f7fb;font-weight:700}
+#rec td.l{text-align:left}
+#rec .ok{color:var(--good);font-weight:700}
+#rec .no{color:#c3ced9}
 header .ico{font-size:1.1em}
 main{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;padding:8px 10px 10px}
 .status{display:flex;align-items:center;gap:12px;width:100%;max-width:calc(var(--cs)*var(--cols) + 40px);min-width:280px;justify-content:space-between;font-weight:700}
@@ -187,6 +195,7 @@ body.big .keys{display:none}
   </div>
   <span class="spacer"></span>
   <button id="btnHelper" class="off" aria-pressed="false" title="합 숫자를 누르면 조합 표시"><span class="ico">🧮</span><span class="txt"> 조합 OFF</span></button>
+  <button id="btnRec" title="기록"><span class="ico">📋</span><span class="txt"> 기록</span></button>
   <button id="btnHelp" title="도움말"><span class="ico">❓</span><span class="txt"> 도움말</span></button>
   <button id="btnBig" aria-pressed="false" title="전체화면 크게 보기"><span class="ico">🖥</span><span class="txt"> 전체화면</span></button>
 </header>
@@ -250,6 +259,18 @@ body.big .keys{display:none}
       <summary>조합이 딱 하나뿐인 합 (외워두면 편해요)</summary>
       <div id="fixedCombos"></div>
     </details>
+  </div>
+</div>
+
+<div id="rec" class="modal">
+  <div class="card" style="max-width:520px">
+    <button class="x" data-close>✕</button>
+    <h3 style="margin:0 0 10px">📋 기록</h3>
+    <div id="recBody"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:8px;flex-wrap:wrap">
+      <span id="recRand" class="rem"></span>
+      <button id="recClear">기록 모두 지우기</button>
+    </div>
   </div>
 </div>
 
@@ -599,9 +620,37 @@ function msg(t){
   $('msg').textContent=t;clearTimeout(msgTimer);
   msgTimer=setTimeout(()=>{$('msg').textContent='';},3500);
 }
-function doneKey(){return 'kakuro.done.'+level+'.'+pick;}
-function isDone(l,p){try{return localStorage.getItem('kakuro.done.'+l+'.'+p)==='1';}catch(e){return false;}}
-function markDone(){try{if(pick!=='r')localStorage.setItem(doneKey(),'1');}catch(e){}}
+// ----- 저장(기록·이어하기) -----
+function lsGet(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+function lsSet(k,v){try{if(v==null)localStorage.removeItem(k);else localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function recAll(){return lsGet('kakuro.rec',{});}
+function recGet(l,p){return recAll()[l+'.'+p]||null;}
+function isDone(l,p){return !!recGet(l,p);}
+function markDone(){
+  const ms=elapsed(),clean=S.hints===0&&S.checks===0;
+  if(pick==='r'){lsSet('kakuro.rand',(lsGet('kakuro.rand',0)||0)+1);return;}
+  const all=recAll(),k=level+'.'+pick,old=all[k];
+  const rec={best:old?Math.min(old.best,ms):ms,hints:S.hints,checks:S.checks,clean:(old&&old.clean)||clean,n:(old?old.n:0)+1,date:Date.now()};
+  all[k]=rec;lsSet('kakuro.rec',all);
+}
+let saveTimer=0;
+function saveState(){
+  if(!S||S.done){lsSet('kakuro.save',null);return;}
+  lsSet('kakuro.save',{level,pick,g:pick==='r'?gridOf(P):null,val:S.val,notes:S.notes,order:S.order,ms:elapsed(),hints:S.hints,checks:S.checks});
+}
+function gridOf(P){const g=[];for(let r=0;r<P.n;r++){let s='';for(let c=0;c<P.n;c++)s+=P.w[r][c]?P.sol[r*P.n+c]:'0';g.push(s);}return g;}
+function loadState(){
+  const sv=lsGet('kakuro.save',null);if(!sv||!FIXED[sv.level])return false;
+  level=sv.level;pick=sv.pick;
+  const P0=sv.pick==='r'?(sv.g?fromGrid(sv.g):null):fromGrid(FIXED[level][pick]);
+  if(!P0)return false;
+  $('pname').textContent=LNAME[level]+' '+(pick==='r'?'🎲 랜덤':(pick+1)+'번');
+  updateSeg();
+  startPuzzle(P0);
+  S.val=sv.val;S.notes=sv.notes;S.order=sv.order||[];S.hints=sv.hints||0;S.checks=sv.checks||0;
+  tAcc=sv.ms||0;tStart=Date.now();running=true;
+  render();return true;
+}
 
 function generate(n,my,cb){
   let tries=0;
@@ -622,16 +671,23 @@ function startPuzzle(p){
   P=p;
   S={val:Array(P.N).fill(0),notes:Array(P.N).fill(0),order:[],bad:new Set(),hintCells:new Set(),done:false,paused:false,hints:0,checks:0};
   undoStack=[];redoStack=[];
-  buildBoard();render();
+  buildBoard();
+  const rec=pick!=='r'?recGet(level,pick):null;
+  if(rec){S.val=P.sol.slice();S.done=true;}
+  render();
   $('cover').classList.remove('show');
   startTimer();
+  if(rec){running=false;tAcc=rec.best;$('timer').textContent=fmt(rec.best);}
+  else saveState();
 }
 function newGame(){
   const my=++token;
   hideModal('win');closeBubble();if(tutStep>=0)tutEnd();
   S=null;sel=-1;running=false;clearTimeout(msgTimer);$('msg').textContent='';
   $('timer').textContent='00:00';
-  $('pname').textContent=LNAME[level]+' '+(pick==='r'?'🎲 랜덤':(pick+1)+'번');
+  const rec0=pick!=='r'?recGet(level,pick):null;
+  $('pname').textContent=LNAME[level]+' '+(pick==='r'?'🎲 랜덤':(pick+1)+'번')+(rec0?' · ✅ 완료 (기록 '+fmt(rec0.best)+')':'');
+  $('pname').classList.toggle('ok',!!rec0);
   $('cover').innerHTML='<div class="spin"></div><div id="coverText">퍼즐 만드는 중…</div>';
   $('cover').classList.add('show');
   $('btnPause').innerHTML='⏸<span class="txt"> 일시정지</span>';
@@ -702,7 +758,7 @@ function mutate(fn){
     undoStack.push(before);if(undoStack.length>600)undoStack.shift();
     redoStack=[];S.bad.clear();S.hintCells.clear();
   }
-  afterChange();return true;
+  afterChange();saveState();return true;
 }
 function afterChange(){
   render();
@@ -719,7 +775,13 @@ function redo(){
 function restart(){
   if(!S||S.paused)return;
   if(!undoStack.length&&!S.done)return;
-  if(!confirm('입력한 내용을 모두 지우고 처음부터 할까요?'))return;
+  if(!confirm(S.done?'이 문제를 처음부터 다시 풀까요? (기록은 남아요)':'입력한 내용을 모두 지우고 처음부터 할까요?'))return;
+  if(S.done&&pick!=='r'){
+    S={val:Array(P.N).fill(0),notes:Array(P.N).fill(0),order:[],bad:new Set(),hintCells:new Set(),done:false,paused:false,hints:0,checks:0};
+    undoStack=[];redoStack=[];sel=-1;render();startTimer();saveState();
+    $('pname').textContent=LNAME[level]+' '+(pick+1)+'번 (다시 풀기)';$('pname').classList.remove('ok');
+    return;
+  }
   newGame();
 }
 
@@ -790,7 +852,7 @@ function giveHint(){
   if(sel>=0)cells.sort((a,b)=>dist(a,sel)-dist(b,sel));
   cells=cells.slice(0,2);
   cells.forEach(i=>S.hintCells.add(i));
-  render();
+  render();saveState();
   if(r.weak)msg('바로 정해지는 칸은 없어요. 초록 칸이 후보가 가장 적으니 거기부터 생각해 보세요');
   else msg('초록 테두리 칸은 지금 숫자가 하나로 정해져요!');
 }
@@ -801,7 +863,7 @@ function checkWrong(){
   const filled=P.whites.filter(i=>S.val[i]);
   if(!filled.length){msg('아직 입력한 칸이 없어요');return;}
   const wrong=filled.filter(i=>S.val[i]!==P.sol[i]);
-  S.checks++;S.bad=new Set(wrong);S.hintCells.clear();render();
+  S.checks++;S.bad=new Set(wrong);S.hintCells.clear();render();saveState();
   if(wrong.length)msg('틀린 칸이 '+wrong.length+'개 있어요 (빨간 칸)');
   else msg('지금까지 입력한 칸은 모두 맞아요! 👍');
 }
@@ -956,7 +1018,8 @@ window.addEventListener('scroll',positionBubble,{passive:true});
 
 // ----- 완성 -----
 function win(){
-  S.done=true;stopTimer();closeBubble();markDone();updateSeg();
+  S.done=true;stopTimer();closeBubble();markDone();updateSeg();lsSet('kakuro.save',null);
+  $('pname').textContent=LNAME[level]+' '+(pick==='r'?'🎲 랜덤':(pick+1)+'번')+' · ✅ 완료';$('pname').classList.add('ok');
   const clean=(S.hints===0&&S.checks===0);
   $('winInfo').innerHTML=LNAME[level]+' '+(pick==='r'?'랜덤':(pick+1)+'번')+' · 걸린 시간 <b>'+fmt(elapsed())+'</b><br>힌트 '+S.hints+'회 · 틀린 칸 확인 '+S.checks+'회'+(clean?'<br><b style="color:var(--good)">🏆 힌트·확인 없이 완성!</b>':'');
   $('winNext').textContent=pick==='r'?'새 랜덤 문제':(pick<4?'다음 문제 ('+(pick+2)+'번)':(level==='hard'?'새 랜덤 문제':'다음 난이도로'));
@@ -1109,17 +1172,42 @@ function tutEnd(){
 }
 function tutStart(){
   hideModal('help');
-  if(!(level==='easy'&&pick===0)){level='easy';pick=0;newGame();}
   try{$('tutSkip').checked=localStorage.getItem('kakuro.tut.skip')==='1';}catch(e){}
   tutShow(0);
 }
 $('tutNext').addEventListener('click',()=>tutShow(tutStep+1));
 $('tutPrev').addEventListener('click',()=>tutShow(tutStep-1));
 $('btnTut').addEventListener('click',tutStart);
+function renderRec(){
+  const all=recAll();
+  let h='<table><tr><th>난이도</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr>';
+  for(const l of ['easy','normal','hard']){
+    h+='<tr><td class="l"><b>'+LNAME[l]+'</b></td>';
+    for(let p=0;p<5;p++){
+      const r=all[l+'.'+p];
+      h+='<td>'+(r?'<span class="ok">✔ '+fmt(r.best)+'</span>'+(r.clean?' 🏆':'')+'<br><span class="rem">힌트'+r.hints+'·확인'+r.checks+'</span>':'<span class="no">—</span>')+'</td>';
+    }
+    h+='</tr>';
+  }
+  h+='</table>';
+  const done=Object.keys(all).length;
+  $('recBody').innerHTML='<div class="rem" style="margin-bottom:6px">완료 '+done+' / 15 · 🏆 = 힌트·확인 없이 완성 · 시간은 최고 기록</div>'+h;
+  $('recRand').textContent='🎲 랜덤 완성 '+(lsGet('kakuro.rand',0)||0)+'회';
+}
+$('btnRec').addEventListener('click',()=>{renderRec();showModal('rec');});
+$('recClear').addEventListener('click',()=>{
+  if(!confirm('모든 기록(완료 표시·시간·이어하기)을 지울까요?'))return;
+  lsSet('kakuro.rec',null);lsSet('kakuro.rand',null);lsSet('kakuro.save',null);
+  renderRec();updateSeg();hideModal('rec');newGame();
+});
+setInterval(()=>{if(S&&!S.done&&!S.paused&&running)saveState();},5000);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)saveState();});
+window.addEventListener('pagehide',saveState);
 setHelper(false);
-newGame();
+if(!loadState())newGame();
 (function(){let skip=false;try{skip=localStorage.getItem('kakuro.tut.skip')==='1';}catch(e){}
-  if(!skip)setTimeout(tutStart,300);})();
+  // 처음 방문(기록·이어하기 없음)일 때만 자동으로
+  if(!skip&&!lsGet('kakuro.save',null)&&!Object.keys(recAll()).length)setTimeout(tutStart,300);})();
 </script>
 </body>
 </html>
