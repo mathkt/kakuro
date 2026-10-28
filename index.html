@@ -11,7 +11,7 @@
   --black:#2b3a4a; --white:#fffdf5; --cluebg:#d6e0ea; --sel:#ffe27a; --run:#fff3c4; --same:#cfe6ff;
   --bad:#ffb3b3; --good:#2e9e5b; --muted:#6b7f93;
   --cols:7; --rows:7; --csmax:76px;
-  --big:46px; --small:32px; --dock:110px;
+  --big:46px; --small:31px; --dock:116px;
   --vh:100vh; --chrome:calc(205px + var(--dock)); /* 헤더+상태줄+도구줄+숫자판 높이 */
   --cs:min(calc((100vw - 20px) / var(--cols)), calc((var(--vh) - var(--chrome)) / var(--rows)), var(--csmax));
 }
@@ -83,16 +83,17 @@ body.helper .cell .ca:hover,body.helper .cell .cd:hover{background:rgba(31,58,86
 .chip.off{opacity:.3;text-decoration:line-through}
 .rem{font-weight:400;color:var(--muted);font-size:.85em}
 .none{color:var(--muted)}
-/* 하단 고정 숫자판 */
-#dock{position:fixed;left:0;right:0;bottom:0;z-index:50;background:#fff;border-top:1px solid #b8c6d4;box-shadow:0 -4px 16px rgba(20,40,70,.12);padding:6px 8px max(6px,env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:5px}
-#dock .row{display:flex;gap:6px;justify-content:center;align-items:center;flex-wrap:nowrap;width:100%;max-width:720px}
+/* 하단 고정 숫자판: 왼쪽 큰 숫자 2줄(1~5 / 6~9+지우기), 오른쪽 메모 3×3 */
+#dock{position:fixed;left:0;right:0;bottom:0;z-index:50;background:#fff;border-top:1px solid #b8c6d4;box-shadow:0 -4px 16px rgba(20,40,70,.12);padding:6px 8px max(6px,env(safe-area-inset-bottom));display:flex;justify-content:center;align-items:center;gap:14px}
+#dock .bigs{display:grid;grid-template-columns:repeat(5,var(--big));grid-auto-rows:var(--big);gap:5px}
+#dock .smalls{display:grid;grid-template-columns:repeat(3,var(--small));grid-auto-rows:var(--small);gap:3px}
 #dock button{min-height:0;padding:0;border-radius:9px;font-weight:700}
-#dock .bigs button{flex:1 1 0;height:var(--big);font-size:1.35em;max-width:60px}
-#dock .smalls button{flex:1 1 0;height:var(--small);font-size:.95em;max-width:60px;background:#f6f9fc;color:#5a7087}
+#dock .bigs button{font-size:1.3em}
+#dock .smalls button{font-size:.9em;background:#f6f9fc;color:#5a7087;border-radius:7px}
 #dock .bigs button.cur{background:var(--accent);border-color:var(--accent);color:#fff}
 #dock .smalls button.note{background:#ffefb0;border-color:#e0a800;color:#6b4a00}
-#dock .lbl{font-size:.72em;color:var(--muted);width:28px;text-align:center;flex:none}
-#dock #dkErase{flex:none;width:auto;padding:0 12px;height:var(--small);font-size:.9em;background:#fff;white-space:nowrap}
+#dock #dkErase{font-size:.85em;white-space:nowrap;background:#fff}
+#dock .lbl{font-size:.7em;color:var(--muted);writing-mode:vertical-rl;text-orientation:upright;letter-spacing:2px;align-self:center}
 body.nosel #dock button:not(#dkErase){opacity:.4}
 /* 모달 */
 .modal{position:fixed;inset:0;background:rgba(15,30,50,.55);display:none;align-items:center;justify-content:center;z-index:90;padding:14px}
@@ -121,7 +122,7 @@ body.big .keys{display:none}
 @media (max-height:820px){.keys{display:none}}
 /* 좁은 화면(폰) */
 @media (max-width:640px){
-  :root{--big:42px;--small:30px;--dock:100px;--chrome:calc(195px + var(--dock))}
+  :root{--big:40px;--small:28px;--dock:108px;--chrome:calc(210px + var(--dock))}
   header{gap:6px 8px;padding:6px 8px}
   header h1{font-size:1.1em}
   header h1 small{display:none}
@@ -130,9 +131,8 @@ body.big .keys{display:none}
   .seg button .long{display:none}.seg button .short{display:inline}
   #pick button{min-width:34px;padding:6px 6px}
   .txt{display:none}
-  #dock .row{gap:4px}
-  #dock .bigs button{max-width:none;font-size:1.25em}
-  #dock .smalls button{max-width:none}
+  #dock{gap:8px;padding:5px 6px max(5px,env(safe-area-inset-bottom))}
+  #dock .bigs{gap:4px}
   #dock .lbl{display:none}
   .tools{gap:5px}
   .tools button{padding:8px 10px;font-size:.9em}
@@ -140,15 +140,14 @@ body.big .keys{display:none}
 /* 낮은 가로 화면(폰 가로) */
 @media (max-height:480px) and (orientation:landscape){
   /* 숫자판을 오른쪽 세로 패널로 → 판이 높이를 다 씀 */
-  :root{--big:40px;--small:30px;--dock:0px;--dockw:170px;--chrome:168px;
+  :root{--big:30px;--small:28px;--dock:0px;--dockw:176px;--chrome:168px;
     --cs:min(calc((100vw - 20px - var(--dockw)) / var(--cols)), calc((var(--vh) - var(--chrome)) / var(--rows)), var(--csmax))}
   body{padding-bottom:0;padding-right:var(--dockw)}
   header{padding-right:calc(var(--dockw) + 8px)}
-  #dock{left:auto;top:0;bottom:0;width:var(--dockw);border-top:0;border-left:1px solid #b8c6d4;justify-content:center;gap:8px;padding:6px}
-  #dock .row{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;width:100%}
-  #dock .bigs button,#dock .smalls button{max-width:none;width:100%}
+  #dock{left:auto;top:0;bottom:0;width:var(--dockw);border-top:0;border-left:1px solid #b8c6d4;flex-direction:column;justify-content:center;gap:10px;padding:6px}
+  #dock .bigs{grid-template-columns:repeat(5,1fr);width:100%;gap:3px}
+  #dock .smalls{grid-template-columns:repeat(3,var(--small))}
   #dock .lbl{display:none}
-  #dock #dkErase{grid-column:1/-1;width:100%}
   header{padding:4px 8px;gap:4px 6px}
   header h1{font-size:1em}
   header h1 small{display:none}
@@ -205,8 +204,9 @@ body.big .keys{display:none}
 <div id="bubble"><div id="bubbleBody"></div></div>
 
 <div id="dock">
-  <div class="row bigs" id="dkBig"></div>
-  <div class="row smalls" id="dkSmall"></div>
+  <div class="bigs" id="dkBig"></div>
+  <span class="lbl">메모</span>
+  <div class="smalls" id="dkSmall"></div>
 </div>
 
 <div id="help" class="modal">
@@ -917,13 +917,12 @@ document.querySelectorAll('.modal').forEach(m=>{
     const b=document.createElement('button');b.textContent=d;b.dataset.d=d;
     b.addEventListener('click',()=>input(d));big.appendChild(b);
   }
-  const lbl=document.createElement('span');lbl.className='lbl';lbl.textContent='메모';small.appendChild(lbl);
+  const er=document.createElement('button');er.id='dkErase';er.textContent='⌫';er.title='지우기';
+  er.addEventListener('click',erase);big.appendChild(er);
   for(let d=1;d<=9;d++){
     const b=document.createElement('button');b.textContent=d;b.dataset.d=d;
     b.addEventListener('click',()=>inputNote(d));small.appendChild(b);
   }
-  const er=document.createElement('button');er.id='dkErase';er.textContent='⌫ 지우기';
-  er.addEventListener('click',erase);small.appendChild(er);
 })();
 function renderDock(){
   document.body.classList.toggle('nosel',sel<0);
