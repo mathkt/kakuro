@@ -182,6 +182,19 @@ body.big .keys{display:none}
   #dock{padding:4px 8px}
   #dock .row{gap:4px}
 }
+/* ===== 메뉴(폰) ===== */
+#btnMenu{display:none}
+#menuDD{position:fixed;right:8px;top:50px;z-index:85;background:#fff;border:1px solid #cfdae5;border-radius:12px;box-shadow:0 8px 24px rgba(20,40,70,.25);display:none;flex-direction:column;gap:4px;padding:6px;min-width:170px}
+#menuDD.show{display:flex}
+#menuDD button{text-align:left;border:0;min-height:44px;font-size:1em}
+@media (max-width:640px){
+  #btnRec,#btnHelp,#btnBig{display:none}
+  #btnMenu{display:inline-flex;align-items:center}
+  header h1{display:none}
+  header{gap:5px 6px}
+  .seg button{padding:5px 8px}
+  #pick button{min-width:30px;padding:5px 4px}
+}
 /* ===== 온라인 ===== */
 .inp{font-family:inherit;font-size:1.05em;padding:9px 10px;border:1px solid #b9c8d8;border-radius:10px;width:100%}
 .err{color:#c62828;font-size:.88em;min-height:1.2em;margin-top:4px}
@@ -289,8 +302,14 @@ body.mode-duel{--cs:min(calc((100vw - 40px - var(--oppw) - var(--dockw,0px)) / v
   <button id="btnRec" title="기록"><span class="ico">📋</span><span class="txt"> 기록</span></button>
   <button id="btnHelp" title="도움말"><span class="ico">❓</span><span class="txt"> 도움말</span></button>
   <button id="btnBig" aria-pressed="false" title="전체화면 크게 보기"><span class="ico">🖥</span><span class="txt"> 전체화면</span></button>
+  <button id="btnMenu" title="메뉴" aria-expanded="false"><span class="ico">☰</span></button>
 </header>
 
+<div id="menuDD">
+  <button data-go="btnRec">📋 기록</button>
+  <button data-go="btnHelp">❓ 도움말</button>
+  <button data-go="btnBig" id="mBig">🖥 전체화면</button>
+</div>
 <div id="modebar"><span id="mbText"></span><span class="spacer"></span><button id="mbLeave">🚪 나가기</button></div>
 <main>
   <div class="status">
@@ -1976,6 +1995,11 @@ $('qRankBig').addEventListener('click',()=>showModal('rankM'));
 $('loginM').addEventListener('click',e=>{if(e.target===$('loginM')&&$('loginX').style.display==='none')e.stopImmediatePropagation();},true);
 // 선생님 화면/대결 중 혼자하기 저장이 섞이지 않도록 나갈 때도 저장
 
+$('btnMenu').addEventListener('click',e=>{e.stopPropagation();const on=!$('menuDD').classList.contains('show');
+  $('menuDD').classList.toggle('show',on);$('btnMenu').setAttribute('aria-expanded',on);
+  $('mBig').textContent=document.body.classList.contains('big')?'🖥 전체화면 끝':'🖥 전체화면';});
+$('menuDD').addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(!b)return;$('menuDD').classList.remove('show');$(b.dataset.go).click();});
+document.addEventListener('pointerdown',e=>{if(!e.target.closest('#menuDD')&&!e.target.closest('#btnMenu'))$('menuDD').classList.remove('show');});
 function boot(){
   netInit();
   if(!db){$('btnDuel').title='인터넷 연결이 필요해요';}
