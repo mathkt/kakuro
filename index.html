@@ -1957,7 +1957,7 @@ $('tpPurge').addEventListener('click',()=>{
 $('stuGrid').addEventListener('click',e=>{const c=e.target.closest('[data-k]');if(!c)return;TV=c.dataset.k;renderTview();showModal('tview');});
 $('tview').addEventListener('click',e=>{if(e.target===$('tview')||e.target.closest('[data-close]'))TV=null;});
 $('rmList').addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(b&&confirm(b.dataset.del+'번 방을 닫을까요?'))db.ref('rooms/'+b.dataset.del).remove();});
-$('rmAll').addEventListener('click',()=>{if(confirm('모든 대결방을 닫을까요?'))db.ref('rooms').remove();});
+$('rmAll').addEventListener('click',()=>{if(!confirm('모든 대결방을 닫을까요?'))return;db.ref('rooms').once('value').then(s=>{for(const c in (s.val()||{}))db.ref('rooms/'+c).remove();});});
 $('qLevel').addEventListener('change',()=>{$('qBlanks').value={easy:3,normal:5,hard:6}[$('qLevel').value];qBuild();});
 $('qPick').addEventListener('change',()=>qBuild());
 $('qBlanks').addEventListener('change',()=>{qAuto();qDraw();});
