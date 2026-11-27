@@ -188,7 +188,7 @@ body.big .keys{display:none}
 #menuDD.show{display:flex}
 #menuDD button{text-align:left;border:0;min-height:44px;font-size:1em}
 @media (max-width:640px){
-  #btnRec,#btnHelp,#btnBig{display:none}
+  #btnRec,#btnHelp,#btnBig,#btnDark{display:none}
   #btnMenu{display:inline-flex;align-items:center}
   header h1{display:none}
   header{gap:5px 6px}
@@ -208,10 +208,61 @@ button.sm{min-height:34px;padding:4px 10px;font-size:.85em}
 #modebar{display:none;align-items:center;gap:8px;padding:6px 12px;background:#fff3c4;border-bottom:1px solid #e8d58a;font-weight:700;color:#6b4a00}
 #modebar.show{display:flex}
 #modebar button{min-height:34px;padding:4px 12px;white-space:nowrap;flex:none}
-body.mode-quiz #diff,body.mode-quiz #pick,body.mode-duel #diff,body.mode-duel #pick,
-body.mode-quiz #btnPause,body.mode-duel #btnPause,body.mode-quiz #btnRestart,body.mode-duel #btnRestart,
-body.mode-quiz #btnCheck,body.mode-duel #btnCheck,body.mode-quiz #btnHint,body.mode-duel #btnHint,
-body.mode-quiz #btnDuel{display:none}
+body.mode-x #diff,body.mode-x #pick,body.mode-x #btnPause,body.mode-x #btnRestart,body.mode-x #btnCheck,body.mode-x #btnHint,body.mode-x #btnHome{display:none}
+#btnMe,#btnDuel{display:none!important}
+/* ===== 메인 화면 ===== */
+#home{position:fixed;inset:0;z-index:60;background:var(--bg);overflow:auto;display:none}
+#home.show{display:block}
+.hwrap{max-width:540px;margin:0 auto;padding:10px 12px 30px;padding-top:max(10px,env(safe-area-inset-top))}
+.hban{display:flex;align-items:center;gap:8px;background:linear-gradient(120deg,#2f5f8a,#1f3a56);color:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 4px 14px rgba(20,40,70,.18)}
+.hban .ht{flex:1;text-align:center;font-size:1.6em;font-weight:800;letter-spacing:1px;padding-left:76px}
+.hban .ht em{font-style:normal;color:#ffe27a}
+.hban button{min-height:38px;padding:4px 10px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.35);color:#fff}
+.hcard{background:var(--panel);border:1px solid #d6e0ea;border-radius:16px;padding:12px 16px 16px;margin-top:10px}
+.htit{font-weight:800;color:#4b6075;font-size:1.1em;margin-bottom:8px}
+.hcard .frow{flex-wrap:nowrap}
+.code4{width:130px!important;font-size:1.5em!important;font-weight:800;text-align:center;letter-spacing:4px;border:2px solid var(--accent)!important}
+button.big{flex:1;min-height:52px;font-size:1.15em;font-weight:700}
+#hMsg{min-height:1.2em;color:#b25e00;font-weight:700;font-size:.9em;margin-top:6px}
+.mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
+.mcard{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;background:var(--panel);border:1px solid #d6e0ea;border-top:5px solid var(--mc);border-radius:16px;padding:10px 12px 12px;min-height:104px}
+.mcard i{font-style:normal;font-size:1.9em;line-height:1.1}
+.mcard b{font-size:1.05em}
+.mcard small{color:var(--muted);font-size:.78em;line-height:1.3}
+.mcard.c1{--mc:#2e9e5b}.mcard.c2{--mc:#2f7fd1}.mcard.c3{--mc:#e8730c}.mcard.c4{--mc:#8e44ad}
+.mcard.pulse{animation:mp 1.4s ease-in-out infinite}
+@keyframes mp{50%{box-shadow:0 0 0 5px rgba(142,68,173,.25)}}
+.hfoot{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.chipbtn{min-height:36px;padding:4px 12px;border-radius:12px;font-size:.88em;font-weight:700;color:#4b6075}
+#btnHome{font-weight:700}
+@media (max-width:640px){.mgrid{grid-template-columns:repeat(2,1fr)}.hban .ht{font-size:1.35em;padding-left:60px}}
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.pgrid button{min-height:64px;font-weight:700;font-size:1.05em}
+.pgrid small{display:block;font-weight:400;color:var(--muted);font-size:.78em}
+/* ===== 어두운 화면 ===== */
+body.dark{--bg:#121a23;--ink:#e3eaf1;--panel:#1c2733;--white:#23313f;--cluebg:#34465a;--black:#9db2c6;--sel:#6e5d12;--run:#3a3622;--same:#23415e;--bad:#5c2323;--muted:#93a6b8;--accent-soft:#1f3550}
+body.dark button{background:#22303e;color:var(--ink);border-color:#3a4c5e}
+body.dark button:hover{background:#2a3a4a}
+body.dark button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+body.dark .cell{color:#9fd0ff}
+body.dark .cell .ca,body.dark .cell .cd{color:#e3eaf1}
+body.dark .cell.given{background:#2b3846;color:#a9b6c3}
+body.dark .notes{color:#93a6b8}
+body.dark #dock,body.dark .modal .card,body.dark #opp,body.dark .scard,body.dark .qres,body.dark .ritem,body.dark #bubble,body.dark #menuDD,body.dark #tutor,body.dark .hcard,body.dark .mcard{background:var(--panel);border-color:#334556;color:var(--ink)}
+body.dark #dock .smalls button{background:#1a2530;color:#93a6b8}
+body.dark #dock #dkErase{background:#22303e}
+body.dark .mcard{border-top-color:var(--mc)}
+body.dark .htit{color:#c3d0dc}
+body.dark .seg button.on{background:#e3eaf1;color:#1f3a56}
+body.dark .inp,body.dark select{background:#1a2530;color:var(--ink);border-color:#3a4c5e}
+body.dark #modebar{background:#3a3218;color:#ffe9a8;border-color:#5a4c20}
+body.dark .mb .m{color:#9fd0ff}body.dark .mb .m.c i{color:#e3eaf1}
+body.dark .mb .m.gv{background:#2b3846;color:#93a6b8}
+body.dark .chip{background:#1f3550;color:#9fd0ff;border-color:#335477}
+body.dark .chipbtn{color:#c3d0dc}
+body.dark #cover{background:#18222d}
+body.dark .cell.sel{box-shadow:inset 0 0 0 3px #e0a800}
+body.dark #rec th{background:#22303e}
 .cell.given{color:#4b5b6b;background:#eef1f4}
 .cell.given.sel{background:#e3e8ee}
 .playrow{display:flex;gap:16px;align-items:flex-start;justify-content:center}
@@ -284,7 +335,32 @@ body.mode-duel{--cs:min(calc((100vw - 40px - var(--oppw) - var(--dockw,0px)) / v
 </style>
 </head>
 <body class="nosel">
+<div id="home">
+  <div class="hwrap">
+    <div class="hban"><span class="ht">🧩 가쿠<em>로</em></span><button id="hDark" title="어두운 화면">🌙</button><button id="hBig" title="전체화면">🖥</button></div>
+    <div class="hcard">
+      <div class="htit">🔑 코드로 입장</div>
+      <div class="rem" style="margin:-4px 0 6px">친구가 만든 대결방 코드</div>
+      <div class="frow"><input id="hCode" class="inp code4" inputmode="numeric" maxlength="4" placeholder="4자리" autocomplete="off"><button class="primary big" id="hJoin">입장하기</button></div>
+      <div id="hMsg"></div>
+    </div>
+    <div class="mgrid">
+      <button class="mcard c1" data-m="solo"><i>🎯</i><b>혼자 하기</b><small id="mSoloSub">15문제 + 랜덤</small></button>
+      <button class="mcard c2" data-m="duel"><i>⚔️</i><b>둘이 하기</b><small>온라인 · 2인 대결</small></button>
+      <button class="mcard c3" data-m="prac"><i>🧩</i><b>퀴즈</b><small>빈칸 채우기 연습</small></button>
+      <button class="mcard c4" data-m="learn"><i>🎓</i><b>배우기</b><small id="mLearnSub">처음이면 여기부터!</small></button>
+    </div>
+    <div class="hfoot">
+      <button id="hMe" class="chipbtn">👤 <span id="hName"></span> ✎</button>
+      <span class="spacer"></span>
+      <button id="hRec" class="chipbtn">📋 기록</button>
+      <button id="hHelp" class="chipbtn">❓ 도움말</button>
+      <button id="hTeach" class="chipbtn" style="display:none">🔒 교사용</button>
+    </div>
+  </div>
+</div>
 <header>
+  <button id="btnHome" title="메인 화면">←<span class="txt"> 메뉴</span></button>
   <h1>가쿠로<small>숫자 합 퍼즐</small></h1>
   <div class="seg" id="diff">
     <button data-d="easy" class="on"><span class="long">쉬움 5×5</span><span class="short">5×5</span></button>
@@ -302,6 +378,7 @@ body.mode-duel{--cs:min(calc((100vw - 40px - var(--oppw) - var(--dockw,0px)) / v
   <button id="btnRec" title="기록"><span class="ico">📋</span><span class="txt"> 기록</span></button>
   <button id="btnHelp" title="도움말"><span class="ico">❓</span><span class="txt"> 도움말</span></button>
   <button id="btnBig" aria-pressed="false" title="전체화면 크게 보기"><span class="ico">🖥</span><span class="txt"> 전체화면</span></button>
+  <button id="btnDark" title="어두운 화면"><span class="ico">🌙</span></button>
   <button id="btnMenu" title="메뉴" aria-expanded="false"><span class="ico">☰</span></button>
 </header>
 
@@ -309,6 +386,7 @@ body.mode-duel{--cs:min(calc((100vw - 40px - var(--oppw) - var(--dockw,0px)) / v
   <button data-go="btnRec">📋 기록</button>
   <button data-go="btnHelp">❓ 도움말</button>
   <button data-go="btnBig" id="mBig">🖥 전체화면</button>
+  <button data-go="btnDark" id="mDark">🌙 어두운 화면</button>
 </div>
 <div id="modebar"><span id="mbText"></span><span class="spacer"></span><button id="mbLeave">🚪 나가기</button></div>
 <main>
@@ -347,7 +425,7 @@ body.mode-duel{--cs:min(calc((100vw - 40px - var(--oppw) - var(--dockw,0px)) / v
   <div class="card">
     <button class="x" data-close>✕</button>
     <h3>❓ 도움말</h3>
-    <button id="btnTut" style="margin-bottom:8px">🎓 튜토리얼 다시 보기</button>
+    <button id="btnTut" style="margin-bottom:8px">🎓 배우기(튜토리얼) 하기</button>
     <details open>
       <summary>게임 방법</summary>
       <ul>
@@ -403,7 +481,8 @@ body.mode-duel{--cs:min(calc((100vw - 40px - var(--oppw) - var(--dockw,0px)) / v
   <div class="step" id="tutStep"></div>
   <div class="body" id="tutBody"></div>
   <div class="foot">
-    <label><input type="checkbox" id="tutSkip"> 다음부터 건너뛰기</label>
+    <label style="display:none"><input type="checkbox" id="tutSkip"></label>
+    <button id="tutQuit">그만하기</button><span class="spacer"></span>
     <button id="tutPrev">이전</button>
     <button class="primary" id="tutNext">다음</button>
   </div>
@@ -419,6 +498,19 @@ body.mode-duel{--cs:min(calc((100vw - 40px - var(--oppw) - var(--dockw,0px)) / v
     <button class="primary" id="loginOk" style="width:100%;margin-top:8px">시작하기</button>
   </div>
 </div>
+<div id="pracM" class="modal">
+  <div class="card" style="max-width:420px">
+    <button class="x" data-close>✕</button>
+    <h3 style="margin:0 0 4px">🧩 퀴즈 연습</h3>
+    <div class="rem">대부분 채워진 판에서 빈칸만 맞혀요. 매번 새 문제!</div>
+    <div class="pgrid">
+      <button data-pl="easy">쉬움<small>5×5 · 빈칸 3</small></button>
+      <button data-pl="normal">보통<small>7×7 · 빈칸 5</small></button>
+      <button data-pl="hard">어려움<small>9×9 · 빈칸 6</small></button>
+    </div>
+    <div class="rem" id="pracRec" style="margin-top:8px"></div>
+  </div>
+</div>
 <div id="pinM" class="modal">
   <div class="card" style="max-width:340px">
     <button class="x" data-close>✕</button>
@@ -426,6 +518,7 @@ body.mode-duel{--cs:min(calc((100vw - 40px - var(--oppw) - var(--dockw,0px)) / v
     <input id="pinIn" class="inp" type="password" inputmode="numeric" placeholder="비밀번호">
     <div id="pinErr" class="err"></div>
     <button class="primary" id="pinOk" style="width:100%;margin-top:8px">확인</button>
+    <button id="pinRename" style="width:100%;margin-top:6px">이름 바꾸기</button>
   </div>
 </div>
 <div id="kickM" class="modal">
@@ -849,7 +942,8 @@ function resumeTimer(){if(!running){tStart=Date.now();running=true;}}
 
 function msg(t){
   $('msg').textContent=t;clearTimeout(msgTimer);
-  msgTimer=setTimeout(()=>{$('msg').textContent='';},3500);
+  const h=document.getElementById('hMsg');if(h)h.textContent=t;
+  msgTimer=setTimeout(()=>{$('msg').textContent='';if(h)h.textContent='';},3500);
 }
 // ----- 저장(기록·이어하기) -----
 function lsGet(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
@@ -996,6 +1090,7 @@ function mutate(fn){
 function afterChange(){
   render();
   if(!S||S.done)return;
+  if(GM==='tut'&&sel>=0&&S.val[sel]&&S.val[sel]!==P.sol[sel])msg('그 숫자는 아니에요. 합을 다시 계산해 보세요 🤔');
   if(P.whites.every(i=>S.val[i]===P.sol[i])){win();return;}
   if(GM!=='solo'&&P.whites.every(i=>S.val[i]))wrongFull();
 }
@@ -1369,7 +1464,7 @@ $('winExtra').addEventListener('click',()=>{if(WIN_ACT.extra)WIN_ACT.extra();});
 document.addEventListener('keydown',e=>{
   const t=e.target;
   if(t&&(t.tagName==='INPUT'||t.tagName==='SELECT'||t.tagName==='TEXTAREA'))return;
-  if(!S)return;
+  if(!S||homeOn()||document.querySelector('.modal.show')||$('tp').classList.contains('show'))return;
   const k=e.key;
   if((e.ctrlKey||e.metaKey)&&e.code==='KeyZ'){e.preventDefault();e.shiftKey?redo():undo();return;}
   if((e.ctrlKey||e.metaKey)&&e.code==='KeyY'){e.preventDefault();redo();return;}
@@ -1385,46 +1480,74 @@ document.addEventListener('keydown',e=>{
   if(e.code==='KeyH'){giveHint();return;}
 });
 
-// ----- 튜토리얼 -----
+// ----- 배우기(체험형 튜토리얼) -----
+// 아주 쉬운 판(쉬움 1번)에서 빈칸 1개 → 2개 → 전부 순서로 직접 채워 봄
 let tutStep=-1;
+const TUT_G=FIXED.easy[0];
 function tutClear(){document.querySelectorAll('.tut').forEach(e=>e.classList.remove('tut'));}
 function tutHL(sels){tutClear();for(const s of sels){document.querySelectorAll(s).forEach(e=>e.classList.add('tut'));}}
+function tutRun(cell,dir){return P.runs.findIndex(r=>r.dir===dir&&r.cells.includes(cell));}
 function tutSteps(){
-  // 조합이 하나뿐인 묶음 하나 고르기
-  let ex=null;
-  for(const run of P.runs){if(COMBO[run.cells.length][run.sum].length===1){ex=run;break;}}
-  const exText=ex?('예를 들어 '+(ex.dir==='h'?'가로':'세로')+' 합 <b>'+ex.sum+'</b>('+ex.cells.length+'칸)은 <b>'+digitsOf(COMBO[ex.cells.length][ex.sum][0]).join(', ')+'</b>밖에 없어요!'):'';
+  // 쉬움 1번: 가로 [1,3]=4, [2,1]=3, [4,2]=6 / 세로 [1,2,4]=7, [3,1,2]=6
   return [
-    {text:'<b>회색 칸의 숫자는 합</b>이에요.<br>오른쪽 위 숫자는 <b>가로(→)</b> 흰 칸들의 합, 왼쪽 아래 숫자는 <b>세로(↓)</b> 흰 칸들의 합이에요.',hl:['.cell.clue']},
-    {text:'<b>흰 칸을 누르고</b> 아래 큰 숫자를 눌러 1~9를 넣어요.<br>같은 숫자를 다시 누르면 지워져요.',hl:['.cell.white','#dkBig']},
-    {text:'한 묶음(연속된 흰 칸) 안에서는 <b>같은 숫자를 두 번 쓸 수 없어요.</b><br>'+exText,hl:ex?ex.cells.map(i=>'.cell[data-i="'+i+'"]'):['.cell.white']},
-    {text:'작은 숫자는 <b>메모</b>(후보 적어두기), ⌫는 <b>지우기</b>예요.<br>💡 <b>힌트</b>는 3번, ✔ <b>틀린 칸 확인</b>은 2번만 쓸 수 있어요.',hl:['#dkSmall','#dkErase','#btnHint','#btnCheck']},
-    {text:'🧮 <b>조합</b>을 켜고 합 숫자를 누르면 들어갈 수 있는 숫자 조합이 보여요.<br>묶음을 다 맞히면 합 숫자가 <b>초록색</b>으로 바뀌어요. 이제 시작!',hl:['#btnHelper']}
+    {board:[7],text:'<b>회색 칸의 숫자는 합</b>이에요.<br>오른쪽 위 숫자는 <b>가로(→)</b> 흰 칸들의 합, 왼쪽 아래 숫자는 <b>세로(↓)</b> 흰 칸들의 합이에요.',hl:()=>['.cell.clue']},
+    {board:[7],task:true,text:'노란 테두리 줄을 보세요. 가로 합이 <b>4</b>인데 이미 <b>1</b>이 있어요.<br>✋ 빈칸을 누르고 아래 큰 숫자로 답을 넣어 보세요!',
+      hl:()=>['.cell[data-i="7"]','.cell[data-i="6"]','.ca[data-run="'+tutRun(7,'h')+'"]','#dkBig']},
+    {board:[11,12],task:true,text:'한 줄 안에서는 <b>같은 숫자를 두 번 쓸 수 없어요.</b><br>가로 합 <b>3</b>을 두 칸으로 만들려면 <b>1과 2</b>뿐! 어느 칸이 1일까요?<br>💡 세로 합 <b>7</b>을 보면 1과 4가 있으니 남은 칸은 <b>2</b>예요.',
+      hl:()=>['.cell[data-i="11"]','.cell[data-i="12"]','.ca[data-run="'+tutRun(11,'h')+'"]','.cd[data-run="'+tutRun(11,'v')+'"]']},
+    {board:null,text:'잘했어요! 다른 도구도 알아봐요.<br>아래 <b>작은 숫자</b>는 메모(후보 적어두기), <b>⌫</b>는 지우기예요. 계속 누르면 최근에 넣은 것부터 지워져요.',hl:()=>['#dkSmall','#dkErase']},
+    {board:null,text:'🧮 <b>조합</b>을 켜고 합 숫자를 누르면 들어갈 수 있는 숫자 조합이 나와요.<br>혼자 하기에서는 💡 힌트(3번)와 ✔ 틀린 칸 확인(2번)도 쓸 수 있어요.',hl:()=>['#btnHelper']},
+    {board:'all',task:true,text:'이제 <b>처음부터 혼자</b> 풀어 보세요! 💪<br>조합이 하나뿐인 합부터 채우면 쉬워요.',hl:()=>['.cell.clue']}
   ];
+}
+function tutBoard(st){
+  const Q=fromGrid(TUT_G);
+  if(st.board==='all')startCustom(Q,[],'🎓 배우기');
+  else if(st.board){const bl=new Set(st.board);startCustom(Q,Q.whites.filter(i=>!bl.has(i)),'🎓 배우기');sel=st.board[0];render();}
 }
 function tutShow(k){
   const steps=tutSteps();
   if(k<0)k=0;
-  if(k>=steps.length){tutEnd();return;}
-  tutStep=k;
-  $('tutStep').textContent='튜토리얼 '+(k+1)+' / '+steps.length;
-  $('tutBody').innerHTML=steps[k].text;
+  if(k>=steps.length){tutFinish();return;}
+  const prev=tutStep;tutStep=k;
+  const st=steps[k];
+  // 새 판이 필요한 단계거나, 이전 단계와 판이 다르면 판을 다시 깔기
+  if(st.board&&(prev<0||JSON.stringify(steps[prev]&&steps[prev].board)!==JSON.stringify(st.board)||st.task))tutBoard(st);
+  $('tutStep').textContent='🎓 배우기 '+(k+1)+' / '+steps.length;
+  $('tutBody').innerHTML=st.text;
   $('tutPrev').disabled=k===0;
-  $('tutNext').textContent=k===steps.length-1?'시작!':'다음';
-  tutHL(steps[k].hl);
+  $('tutNext').disabled=!!st.task&&!(S&&S.done);
+  $('tutNext').textContent=st.task?'✋ 직접 해 보세요':(k===steps.length-1?'끝!':'다음');
+  setModeBar('🎓 배우기 '+(k+1)+' / '+steps.length,true);
+  tutHL(st.hl());
   $('tutor').classList.add('show');
 }
-function tutEnd(){
-  tutStep=-1;tutClear();$('tutor').classList.remove('show');
-  try{if($('tutSkip').checked)localStorage.setItem('kakuro.tut.skip','1');else localStorage.removeItem('kakuro.tut.skip');}catch(e){}
+function tutSolved(){
+  const steps=tutSteps(),st=steps[tutStep];
+  if(!st)return;
+  if(tutStep===steps.length-1){tutFinish();return;}
+  confetti();
+  $('tutNext').disabled=false;$('tutNext').textContent='정답! 다음 ▶';
+  $('tutBody').innerHTML='🎉 <b>정답이에요!</b> '+(tutStep===1?'1 + 3 = 4':'')+'<br>다음으로 넘어가 볼까요?';
+  tutHL(['#tutNext']);
+}
+function tutEnd(){tutStep=-1;tutClear();$('tutor').classList.remove('show');}
+function tutFinish(){
+  tutEnd();lsSet('kakuro.tutdone',1);confetti();
+  winModal('🎓 배우기 완료!','이제 가쿠로를 할 줄 알아요!<br>혼자 하기 <b>쉬움 2번</b>부터 도전해 볼까요?',
+    {nextText:'🎯 혼자 하기',next:()=>{hideModal('win');exitMode(false);level='easy';pick=1;newGame();},closeText:'메인으로',close:()=>exitMode(true)});
 }
 function tutStart(){
   hideModal('help');
-  try{$('tutSkip').checked=localStorage.getItem('kakuro.tut.skip')==='1';}catch(e){}
-  tutShow(0);
+  if(GM==='duel'||GM==='quiz'){msg('지금은 배우기를 할 수 없어요');return;}
+  if(GM!=='solo')exitMode(false);
+  enterMode('tut',{helper:true});
+  tutStep=-1;tutShow(0);
 }
+function tutQuit(){tutEnd();exitMode(true);}
 $('tutNext').addEventListener('click',()=>tutShow(tutStep+1));
-$('tutPrev').addEventListener('click',()=>tutShow(tutStep-1));
+$('tutPrev').addEventListener('click',()=>{const k=Math.max(0,tutStep-1);tutStep=-1;tutShow(k);});
+$('tutQuit').addEventListener('click',tutQuit);
 $('btnTut').addEventListener('click',tutStart);
 function renderRec(){
   const all=recAll();
@@ -1491,13 +1614,13 @@ function doLogin(){
 }
 function setMe(v){
   ME=v;UID=keyOf(v);TEACHER=TEACH_RE.test(v);kicked=false;
-  $('meName').textContent=' '+v;
+  $('meName').textContent=' '+(TEACHER?'선생님':v);
   $('btnTeach').style.display=TEACHER?'':'none';
+  renderHome();
   presStart();
 }
 function afterLogin(){
-  let skip=false;try{skip=localStorage.getItem('kakuro.tut.skip')==='1';}catch(e){}
-  if(!skip&&!lsGet('kakuro.save',null)&&!Object.keys(recAll()).length)setTimeout(tutStart,300);
+  renderHome();
   if(QUIZ&&QUIZ.active&&QID!==QUIZ.id&&!TEACHER){QID=QUIZ.id;startQuiz(QUIZ);return;}
   // 새로고침 전에 있던 대결방으로 다시 들어가기
   let rc=null;try{rc=sessionStorage.getItem('kakuro.room');}catch(e){}
@@ -1530,6 +1653,9 @@ function presStart(){
 function modeLabel(){
   if(GM==='quiz')return '📝 반 퀴즈';
   if(GM==='duel')return '⚔️ 대결 '+(ROOM_CODE||'');
+  if(GM==='tut')return '🎓 배우기';
+  if(GM==='prac')return '🧩 퀴즈 연습';
+  if(homeOn())return '🏠 메인 화면';
   return LNAME[level]+' '+(pick==='r'?'랜덤':(pick+1)+'번');
 }
 function valStr(){return P.sol.map((_,i)=>S.val[i]||0).join('');}
@@ -1554,20 +1680,26 @@ function setModeBar(text,leave){
   $('mbText').innerHTML=text;$('modebar').classList.add('show');
   $('mbLeave').style.display=leave?'':'none';
 }
+const MODES=['mode-quiz','mode-duel','mode-tut','mode-prac','mode-x'];
 function enterMode(kind,opts){
   if(GM==='solo')saveState();
-  GM=kind;MODE=Object.assign({lockUntil:0,helper:true},opts||{});
-  document.body.classList.remove('mode-quiz','mode-duel');document.body.classList.add('mode-'+kind);
-  hideModal('win');closeBubble();if(tutStep>=0)tutEnd();
+  const fromHome=homeOn();
+  if(GM==='tut')tutEnd();
+  GM=kind;MODE=Object.assign({lockUntil:0,helper:true,fromHome},opts||{});
+  document.body.classList.remove(...MODES);document.body.classList.add('mode-'+kind,'mode-x');
+  hideModal('win');closeBubble();hideHome();
   if(!MODE.helper&&helperOn)setHelper(false);
 }
-function exitMode(){
+function exitMode(toHome){
+  const back=toHome===true||(toHome!==false&&MODE&&MODE.fromHome);
+  if(GM==='tut')tutEnd();
   GM='solo';MODE=null;
-  document.body.classList.remove('mode-quiz','mode-duel');
+  document.body.classList.remove(...MODES);
   $('modebar').classList.remove('show');$('opp').classList.remove('show');
   hideModal('win');sel=-1;closeBubble();
   if(!loadState())newGame();
   netPuzzle();
+  if(back)showHome();
 }
 function startCustom(p,givenIdx,label){
   ++token;
@@ -1590,6 +1722,8 @@ function blocked(){
   return lockedNow();
 }
 function wrongFull(){
+  if(GM==='tut'){msg('그 숫자는 아니에요. 합을 다시 계산해 보세요 🤔');return;}
+  if(GM==='prac'){msg('틀린 칸이 있어요. 합을 다시 살펴보세요');return;}
   MODE.lockUntil=now()+LOCK_MS;
   const tick=()=>{if(!MODE||MODE.lockUntil<=now()){if(MODE&&GM!=='solo')msg('이제 다시 고칠 수 있어요');return;}lockedNow();setTimeout(tick,1000);};
   tick();
@@ -1601,7 +1735,7 @@ function countdown(until,cb){
 }
 function modeWin(){
   S.done=true;stopTimer();closeBubble();render();netDirty();
-  if(GM==='quiz')quizWin();else duelWin();
+  if(GM==='quiz')quizWin();else if(GM==='duel')duelWin();else if(GM==='tut')tutSolved();else if(GM==='prac')pracWin();
 }
 function winModal(title,info,acts){
   WIN_ACT=acts||{};
@@ -1756,7 +1890,7 @@ function duelRejoin(){
 function oppOf(rm){const ps=rm.players||{};const k=Object.keys(ps).find(k=>k!==UID);return k?Object.assign({uid:k},ps[k]):null;}
 function onRoom(rm){
   if(!rm||!rm.players||!rm.players[UID]){
-    if(ROOM_CODE){const was=GM==='duel';stopRoom();if(was){msg('대결방이 닫혔어요');exitMode();}}
+    if(ROOM_CODE){const was=GM==='duel';stopRoom();if(was){exitMode(true);msg('대결방이 닫혔어요');}}
     return;
   }
   ROOM=rm;
@@ -1831,7 +1965,7 @@ function duelLeave(silent){
   db.ref('rooms/'+code+'/players/'+UID).onDisconnect().cancel();
   if(host)db.ref('rooms/'+code).remove();else db.ref('rooms/'+code+'/players/'+UID).remove();
   hideModal('win');
-  if(GM==='duel'){exitMode();if(!silent)msg('대결방에서 나왔어요');}
+  if(GM==='duel'){exitMode(!silent);if(!silent)msg('대결방에서 나왔어요');}
 }
 
 // ======================= 선생님 화면 =======================
@@ -1954,7 +2088,7 @@ $('pinOk').addEventListener('click',()=>{
 $('pinIn').addEventListener('keydown',e=>{if(e.key==='Enter')$('pinOk').click();});
 $('kickHere').addEventListener('click',()=>{hideModal('kickM');kicked=false;if(presRef)presRef.update({sid:SID,online:true,at:now()});netPuzzle();});
 $('kickRename').addEventListener('click',()=>{hideModal('kickM');showLogin(true);});
-$('mbLeave').addEventListener('click',()=>{if(GM==='duel'&&confirm('대결방에서 나갈까요?'))duelLeave();});
+$('mbLeave').addEventListener('click',()=>{if(GM==='duel'){if(confirm('대결방에서 나갈까요?'))duelLeave();}else if(GM==='tut')tutQuit();else if(GM==='prac')exitMode(true);});
 $('dCreate').addEventListener('click',createRoom);
 $('dJoin').addEventListener('click',()=>joinRoom($('dCode').value));
 $('dCode').addEventListener('keydown',e=>{if(e.key==='Enter')joinRoom($('dCode').value);});
@@ -2000,7 +2134,72 @@ $('btnMenu').addEventListener('click',e=>{e.stopPropagation();const on=!$('menuD
   $('mBig').textContent=document.body.classList.contains('big')?'🖥 전체화면 끝':'🖥 전체화면';});
 $('menuDD').addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(!b)return;$('menuDD').classList.remove('show');$(b.dataset.go).click();});
 document.addEventListener('pointerdown',e=>{if(!e.target.closest('#menuDD')&&!e.target.closest('#btnMenu'))$('menuDD').classList.remove('show');});
+// ----- 메인 화면 -----
+function homeOn(){return $('home').classList.contains('show');}
+function renderHome(){
+  $('hName').textContent=TEACHER?'':(ME||'이름');
+  $('hMe').style.display=TEACHER?'none':'';$('hTeach').style.display=TEACHER?'':'none';
+  const sv=lsGet('kakuro.save',null),done=Object.keys(recAll()).length;
+  $('mSoloSub').textContent=sv?('이어하기: '+LNAME[sv.level]+' '+(sv.pick==='r'?'랜덤':(sv.pick+1)+'번')):('완료 '+done+' / 15 · 랜덤');
+  const td=lsGet('kakuro.tutdone',0);
+  $('mLearnSub').textContent=td?'다시 배우기':'처음이면 여기부터!';
+  document.querySelector('.mcard.c4').classList.toggle('pulse',!td);
+}
+function showHome(){
+  if(GM!=='solo')return;
+  if(running&&S&&!S.done)stopTimer();
+  closeBubble();renderHome();$('home').classList.add('show');$('hMsg').textContent='';
+}
+function hideHome(){$('home').classList.remove('show');}
+function goSolo(){hideHome();if(GM==='solo'&&S&&!S.done&&!S.paused)resumeTimer();}
+$('btnHome').addEventListener('click',()=>{if(GM==='solo'){saveState();showHome();}});
+document.querySelector('.mgrid').addEventListener('click',e=>{
+  const c=e.target.closest('[data-m]');if(!c)return;
+  const m=c.dataset.m;
+  if(m==='solo')goSolo();
+  else if(m==='duel')openDuel();
+  else if(m==='prac'){const r=lsGet('kakuro.prac',0);$('pracRec').textContent='지금까지 맞힌 연습 문제: '+r+'개';showModal('pracM');}
+  else if(m==='learn')tutStart();
+});
+$('hJoin').addEventListener('click',()=>{if(online())joinRoom($('hCode').value);});
+$('hCode').addEventListener('keydown',e=>{if(e.key==='Enter')$('hJoin').click();});
+$('hMe').addEventListener('click',()=>showLogin(true));
+$('hTeach').addEventListener('click',openTeacher);
+$('hRec').addEventListener('click',()=>{renderRec();showModal('rec');});
+$('hHelp').addEventListener('click',()=>showModal('help'));
+$('hBig').addEventListener('click',toggleBig);
+$('pinRename').addEventListener('click',()=>{hideModal('pinM');showLogin(true);});
+// ----- 퀴즈 연습 (1인) -----
+let PRAC_LV='easy';
+function pracStart(lv){
+  PRAC_LV=lv;hideModal('pracM');hideModal('win');
+  const g=makeGrid(lv,'r'),Q=fromGrid(g),k={easy:3,normal:5,hard:6}[lv];
+  const bl=new Set(shuffle(Q.whites.slice()).slice(0,Math.min(k,Q.whites.length)));
+  if(GM!=='prac')enterMode('prac',{helper:true});
+  setModeBar('🧩 퀴즈 연습 — '+LNAME[lv]+' · 빈칸 '+bl.size+'개',true);
+  startCustom(Q,Q.whites.filter(i=>!bl.has(i)),'🧩 퀴즈 연습');
+  sel=Q.whites.find(i=>bl.has(i));render();
+}
+function pracWin(){
+  const n=(lsGet('kakuro.prac',0)||0)+1;lsSet('kakuro.prac',n);
+  confetti();
+  winModal('🧩 정답!','걸린 시간 <b>'+fmt(elapsed())+'</b><br><span class="rem">연습 문제 '+n+'개째 맞혔어요</span>',
+    {nextText:'다음 문제 ▶',next:()=>pracStart(PRAC_LV),extraText:'메인으로',extra:()=>exitMode(true),closeText:'판 보기'});
+}
+document.querySelector('#pracM .pgrid').addEventListener('click',e=>{const b=e.target.closest('[data-pl]');if(b)pracStart(b.dataset.pl);});
+// ----- 어두운 화면 -----
+function setDark(on){
+  document.body.classList.toggle('dark',on);lsSet('kakuro.dark',on?1:0);
+  $('hDark').textContent=on?'☀️':'🌙';
+  $('btnDark').innerHTML='<span class="ico">'+(on?'☀️':'🌙')+'</span>';
+  $('mDark').textContent=on?'☀️ 밝은 화면':'🌙 어두운 화면';
+}
+$('hDark').addEventListener('click',()=>setDark(!document.body.classList.contains('dark')));
+$('btnDark').addEventListener('click',()=>setDark(!document.body.classList.contains('dark')));
+setDark(!!lsGet('kakuro.dark',0));
+
 function boot(){
+  showHome();
   netInit();
   if(!db){$('btnDuel').title='인터넷 연결이 필요해요';}
   quizListen();
